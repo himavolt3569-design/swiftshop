@@ -17,10 +17,10 @@ interface PromoRow extends Record<string, unknown> {
 const COLS = [
   { key: 'code',      label: 'Code',     sortable: true,
     render: (r: PromoRow) => <span className="font-mono font-bold text-on-surface tracking-widest">{r.code}</span> },
-  { key: 'type',      label: 'Type',     render: (r: PromoRow) => r.type === 'percent' ? 'Percent (%)' : 'Flat (NPR)' },
+  { key: 'type',      label: 'Type',     render: (r: PromoRow) => r.type === 'percent' ? 'Percent (%)' : 'Flat (NPR)', mobileHide: true },
   { key: 'value',     label: 'Value',    render: (r: PromoRow) => r.type === 'percent' ? `${r.value}%` : `NPR ${r.value}` },
-  { key: 'usage',     label: 'Usage',    render: (r: PromoRow) => `${r.usage_count} / ${r.usage_limit}` },
-  { key: 'expires_at', label: 'Expires', render: (r: PromoRow) => r.expires_at ? new Date(r.expires_at).toLocaleDateString() : '-' },
+  { key: 'usage',     label: 'Usage',    render: (r: PromoRow) => `${r.usage_count} / ${r.usage_limit}`, mobileHide: true },
+  { key: 'expires_at', label: 'Expires', render: (r: PromoRow) => r.expires_at ? new Date(r.expires_at).toLocaleDateString() : '-', mobileHide: true },
   { key: 'is_active', label: 'Status',   render: (r: PromoRow) => (
     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-label ${r.is_active ? 'bg-success/10 text-success' : 'bg-surface-container text-on-surface-variant'}`}>
       {r.is_active ? 'Active' : 'Inactive'}

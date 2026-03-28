@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 
 export interface Column<T> {
-  key:      keyof T | string
-  label:    string
-  sortable?: boolean
-  render?:  (row: T) => React.ReactNode
-  width?:   string
+  key:       keyof T | string
+  label:     string
+  sortable?:  boolean
+  render?:   (row: T) => React.ReactNode
+  width?:    string
+  mobileHide?: boolean  // hide this column on small screens
 }
 
 interface AdminTableProps<T extends Record<string, unknown>> {
@@ -49,7 +50,7 @@ export function AdminTable<T extends Record<string, unknown>>({
             {columns.map((col) => (
               <th
                 key={String(col.key)}
-                className={`px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label ${col.sortable ? 'cursor-pointer hover:text-on-surface select-none' : ''} ${col.width ?? ''}`}
+                className={`px-3 sm:px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label ${col.sortable ? 'cursor-pointer hover:text-on-surface select-none' : ''} ${col.width ?? ''} ${col.mobileHide ? 'hidden sm:table-cell' : ''}`}
                 onClick={() => col.sortable && handleSort(String(col.key))}
               >
                 <div className="flex items-center gap-1">
@@ -68,7 +69,7 @@ export function AdminTable<T extends Record<string, unknown>>({
           {loading && Array.from({ length: 5 }).map((_, i) => (
             <tr key={i} className="border-b border-outline-variant/10 animate-pulse">
               {columns.map((col) => (
-                <td key={String(col.key)} className="px-4 py-3">
+                <td key={String(col.key)} className={`px-3 sm:px-4 py-3 ${col.mobileHide ? 'hidden sm:table-cell' : ''}`}>
                   <div className="h-4 bg-surface-container rounded w-3/4" />
                 </td>
               ))}
@@ -86,11 +87,11 @@ export function AdminTable<T extends Record<string, unknown>>({
           {!loading && sorted.map((row) => (
             <tr
               key={String(row[keyField])}
-              className={`border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+              className={`border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors ${onRowClick ? 'cursor-pointer active:bg-surface-container' : ''}`}
               onClick={() => onRowClick?.(row)}
             >
               {columns.map((col) => (
-                <td key={String(col.key)} className="px-4 py-3 text-on-surface font-body">
+                <td key={String(col.key)} className={`px-3 sm:px-4 py-3 text-on-surface font-body ${col.mobileHide ? 'hidden sm:table-cell' : ''}`}>
                   {col.render ? col.render(row) : String(row[String(col.key) as keyof T] ?? '')}
                 </td>
               ))}

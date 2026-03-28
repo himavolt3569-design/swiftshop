@@ -180,8 +180,8 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Orders per day + status donut */}
-      <div className="grid grid-cols-3 gap-5 mb-5">
-        <div className="analytics-card col-span-2 bg-white border border-black/[0.07] rounded-2xl p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+        <div className="analytics-card lg:col-span-2 bg-white border border-black/[0.07] rounded-2xl p-6">
           <h3 className="text-sm font-bold text-[#1A1714] font-label mb-5">Orders Per Day</h3>
           {loading ? (
             <div className="h-44 bg-black/[0.04] rounded-xl animate-pulse" />

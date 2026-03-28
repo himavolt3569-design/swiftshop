@@ -109,59 +109,57 @@ export default function OrdersPage() {
   )
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-6rem)] overflow-hidden">
+    <div className="lg:flex lg:gap-6 lg:h-[calc(100vh-6rem)] lg:overflow-hidden">
       {/* ── Order list ── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 lg:overflow-hidden">
         {/* Toolbar */}
-        <div className="flex items-center gap-3 mb-5 shrink-0">
+        <div className="flex items-center gap-2 mb-4 shrink-0">
           <div>
             <h1 className="text-xl font-bold text-[#1A1714] font-label">Orders</h1>
             <p className="text-xs text-[#1A1714]/40 font-label">{filtered.length} orders</p>
           </div>
-          <div className="ml-auto flex items-center gap-2.5">
-            {/* Search */}
-            <div className="flex items-center gap-2 bg-white border border-black/[0.1] rounded-xl px-3.5 py-2.5 w-56 focus-within:border-primary/40 transition-all">
+          <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-white border border-black/[0.1] rounded-xl px-3 py-2 w-40 sm:w-52 focus-within:border-primary/40 transition-all">
               <Search className="w-3.5 h-3.5 text-[#1A1714]/30 shrink-0" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search orders…"
+                placeholder="Search…"
                 className="bg-transparent border-none focus:ring-0 focus:outline-none text-xs text-[#1A1714]/70 placeholder:text-[#1A1714]/30 w-full font-label"
                 style={{ outline: 'none' }}
               />
             </div>
-            {/* Status filter */}
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#1A1714]/30 pointer-events-none" />
               <select
                 value={statusFilter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="bg-white border border-black/[0.1] rounded-xl pl-9 pr-8 py-2.5 text-xs text-[#1A1714]/70 font-label appearance-none focus:outline-none focus:border-primary/40"
+                className="bg-white border border-black/[0.1] rounded-xl pl-9 pr-8 py-2 text-xs text-[#1A1714]/70 font-label appearance-none focus:outline-none focus:border-primary/40"
               >
-                <option value="">All Statuses</option>
+                <option value="">All</option>
                 {STATUSES.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
               </select>
               <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#1A1714]/30 pointer-events-none" />
             </div>
-            <button onClick={fetchAll} className="w-9 h-9 rounded-xl bg-white border border-black/[0.1] flex items-center justify-center text-[#1A1714]/40 hover:text-[#1A1714]/80 hover:bg-black/[0.04] transition-all">
+            <button onClick={fetchAll} className="w-9 h-9 rounded-xl bg-white border border-black/[0.1] flex items-center justify-center text-[#1A1714]/40 hover:text-[#1A1714]/80 transition-all shrink-0">
               <RefreshCcw className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Order table */}
-        <div className="flex-1 bg-white border border-black/[0.07] rounded-2xl overflow-hidden flex flex-col">
-          {/* Header */}
-          <div className="grid grid-cols-[1fr_1fr_80px_100px_90px_72px] gap-4 px-5 py-3 border-b border-black/[0.06] shrink-0">
-            {['Order', 'Customer', 'Total', 'Payment', 'Status', 'Date'].map((h) => (
+        {/* Order list */}
+        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden flex flex-col lg:flex-1">
+          {/* Desktop column headers */}
+          <div className="hidden sm:grid grid-cols-[1fr_1fr_90px_100px_70px] gap-3 px-5 py-3 border-b border-black/[0.06] shrink-0">
+            {['Order', 'Customer', 'Total', 'Status', 'Date'].map((h) => (
               <p key={h} className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1714]/30 font-label">{h}</p>
             ))}
           </div>
           {/* Rows */}
-          <div className="overflow-y-auto flex-1">
+          <div className="lg:overflow-y-auto lg:flex-1">
             {loading ? (
-              <div className="p-5 space-y-2">
-                {Array.from({ length: 8 }).map((_, i) => (
+              <div className="p-4 space-y-2">
+                {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="h-14 bg-black/[0.04] rounded-xl animate-pulse" />
                 ))}
               </div>
@@ -175,24 +173,38 @@ export default function OrdersPage() {
                 <button
                   key={order.id}
                   onClick={() => setSelected(order)}
-                  className={`w-full grid grid-cols-[1fr_1fr_80px_100px_90px_72px] gap-4 px-5 py-3.5 text-left transition-all border-b border-black/[0.04] hover:bg-black/[0.02] ${
-                    selected?.id === order.id ? 'bg-primary/5 border-l-2 border-l-primary' : ''
+                  className={`w-full text-left transition-all border-b border-black/[0.04] last:border-0 hover:bg-black/[0.02] active:bg-black/[0.04] ${
+                    selected?.id === order.id ? 'bg-primary/[0.04] border-l-2 border-l-primary' : ''
                   }`}
                 >
-                  <div>
-                    <p className="text-sm font-bold text-[#1A1714] font-label">{order.order_number}</p>
-                    <p className="text-[11px] text-[#1A1714]/40 font-label">{order.district}</p>
+                  {/* Mobile card */}
+                  <div className="sm:hidden px-4 py-3.5 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[#1A1714] font-label">{order.order_number}</p>
+                      <p className="text-xs text-[#1A1714]/50 font-label truncate">{order.customer_name} · {order.district}</p>
+                      <p className="text-[11px] text-[#1A1714]/35 font-label mt-0.5">{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <StatusBadge status={order.status} />
+                      <p className="text-sm font-bold text-[#1A1714]/80 font-label">NPR {order.total.toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-[#1A1714]/70 font-label truncate">{order.customer_name}</p>
-                    <p className="text-[11px] text-[#1A1714]/40 font-label">{order.customer_phone}</p>
+                  {/* Desktop row */}
+                  <div className="hidden sm:grid grid-cols-[1fr_1fr_90px_100px_70px] gap-3 px-5 py-3.5 items-center">
+                    <div>
+                      <p className="text-sm font-bold text-[#1A1714] font-label">{order.order_number}</p>
+                      <p className="text-[11px] text-[#1A1714]/40 font-label">{order.district}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[#1A1714]/70 font-label truncate">{order.customer_name}</p>
+                      <p className="text-[11px] text-[#1A1714]/40 font-label">{order.customer_phone}</p>
+                    </div>
+                    <p className="text-sm font-bold text-[#1A1714]/80 font-label">NPR {order.total.toLocaleString()}</p>
+                    <StatusBadge status={order.status} />
+                    <p className="text-[11px] text-[#1A1714]/35 font-label">
+                      {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </p>
                   </div>
-                  <p className="text-sm font-bold text-[#1A1714]/80 font-label self-center">NPR {order.total.toLocaleString()}</p>
-                  <p className="text-xs text-[#1A1714]/50 font-label self-center capitalize">{order.payment_method.replace(/_/g, ' ')}</p>
-                  <div className="self-center"><StatusBadge status={order.status} /></div>
-                  <p className="text-[11px] text-[#1A1714]/35 font-label self-center">
-                    {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </p>
                 </button>
               ))
             )}
@@ -203,11 +215,17 @@ export default function OrdersPage() {
       {/* ── Order detail panel ── */}
       {selected && (
         <>
-          <div className="fixed inset-0 z-[60] bg-black/20 lg:hidden" onClick={() => setSelected(null)} />
+          {/* Backdrop — mobile only (desktop panel is inline) */}
+          <div className="fixed inset-0 z-[60] bg-black/30 lg:hidden" onClick={() => setSelected(null)} />
           <div
             ref={drawerRef}
-            className="w-[400px] shrink-0 bg-white border border-black/[0.07] rounded-2xl overflow-y-auto flex flex-col shadow-lg"
+            className="fixed bottom-0 left-0 right-0 z-[70] max-h-[85dvh] rounded-t-2xl
+                       sm:left-auto sm:right-0 sm:top-14 sm:bottom-0 sm:w-[420px] sm:max-h-none sm:rounded-none sm:rounded-l-2xl
+                       lg:static lg:z-auto lg:w-[400px] lg:shrink-0 lg:rounded-2xl lg:max-h-none
+                       bg-white border border-black/[0.07] overflow-y-auto flex flex-col shadow-2xl"
           >
+            {/* Mobile drag handle */}
+            <div className="sm:hidden w-10 h-1 bg-black/10 rounded-full mx-auto mt-3 mb-1 shrink-0" />
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.07] shrink-0">
               <div>

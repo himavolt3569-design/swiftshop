@@ -23,9 +23,9 @@ const COLS = [
     </div>
   )},
   { key: 'name',          label: 'Product',  sortable: true },
-  { key: 'category_name', label: 'Category', sortable: true },
+  { key: 'category_name', label: 'Category', sortable: true, mobileHide: true },
   { key: 'price',         label: 'Price',    sortable: true, render: (r: ProductRow) => `NPR ${r.price.toLocaleString()}` },
-  { key: 'stock',         label: 'Stock',    sortable: true },
+  { key: 'stock',         label: 'Stock',    sortable: true, mobileHide: true },
   { key: 'is_active',     label: 'Status',   render: (r: ProductRow) => (
     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-label ${r.is_active ? 'bg-success/10 text-success' : 'bg-surface-container text-on-surface-variant'}`}>
       {r.is_active ? 'Active' : 'Inactive'}
