@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;0,900;1,400;1,900&family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Custom cursor only on storefront, not admin */
+  body:not(.admin-body) * {
+    cursor: none;
+  }
+  @media (max-width: 640px) {
+    * { cursor: auto; }
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #fff8f4;
+    color: #1e1b18;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button:disabled, input:disabled, select:disabled, textarea:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Global focus ring — excludes inputs that live inside a styled wrapper
+     (they receive focus feedback from the wrapper's focus-within ring instead) */
+  button:focus-visible, a:focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-primary;
+  }
+  /* Standalone inputs / selects / textareas still get a focus ring */
+  input:not(.auth-input):not(.search-input):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .h-13 { height: 3.25rem; }
+
+  /* Focus rings – always accent color */
+  .focus-ring:focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+@layer components {
+  .auth-input {
+    @apply w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-on-surface placeholder:text-on-surface-variant/50;
+    outline: none !important;
+  }
+  .search-input {
+    @apply w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-on-surface placeholder:text-on-surface-variant/50;
+    outline: none !important;
+  }
+  .admin-input {
+    @apply w-full h-11 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm font-body text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary transition-colors;
+  }
+  .admin-label {
+    @apply block text-[13px] font-medium text-on-surface mb-1.5 font-label;
+  }
+  .admin-btn-primary {
+    @apply px-5 py-2.5 bg-primary text-white text-sm font-label font-semibold rounded-lg hover:bg-primary-container transition-all active:scale-95;
+  }
+  .admin-btn-secondary {
+    @apply px-5 py-2.5 border border-outline-variant text-on-surface text-sm font-label font-medium rounded-lg hover:bg-surface-container transition-all;
+  }
+}

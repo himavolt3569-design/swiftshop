@@ -1,0 +1,34 @@
+export const NEPAL_PROVINCES: Record<string, string[]> = {
+  'Province 1 – Koshi': [
+    'Taplejung', 'Panchthar', 'Ilam', 'Jhapa', 'Morang', 'Sunsari',
+    'Dhankuta', 'Terhathum', 'Sankhuwasabha', 'Bhojpur', 'Solukhumbu',
+    'Okhaldhunga', 'Khotang', 'Udayapur',
+  ],
+  'Province 2 – Madhesh': [
+    'Saptari', 'Siraha', 'Dhanusha', 'Mahottari', 'Sarlahi',
+    'Rautahat', 'Bara', 'Parsa',
+  ],
+  'Province 3 – Bagmati': [
+    'Dolakha', 'Sindhupalchok', 'Rasuwa', 'Nuwakot', 'Dhading',
+    'Makwanpur', 'Chitwan', 'Kavrepalanchok', 'Sindhuli', 'Ramechhap',
+    'Kathmandu', 'Bhaktapur', 'Lalitpur',
+  ],
+  'Province 4 – Gandaki': [
+    'Gorkha', 'Manang', 'Mustang', 'Myagdi', 'Kaski', 'Lamjung',
+    'Tanahu', 'Nawalpur', 'Syangja', 'Parbat', 'Baglung',
+  ],
+  'Province 5 – Lumbini': [
+    'Rukum East', 'Rolpa', 'Pyuthan', 'Gulmi', 'Arghakhanchi', 'Palpa',
+    'Nawalparasi East', 'Rupandehi', 'Kapilvastu', 'Dang', 'Banke', 'Bardiya',
+  ],
+  'Province 6 – Karnali': [
+    'Dolpa', 'Mugu', 'Humla', 'Jumla', 'Kalikot', 'Dailekh',
+    'Jajarkot', 'Rukum West', 'Salyan', 'Surkhet',
+  ],
+  'Province 7 – Sudurpashchim': [
+    'Bajura', 'Bajhang', 'Darchula', 'Baitadi', 'Dadeldhura',
+    'Doti', 'Achham', 'Kailali', 'Kanchanpur',
+  ],
+}
+
+export const PROVINCE_NAMES = Object.keys(NEPAL_PROVINCES ?? {})
