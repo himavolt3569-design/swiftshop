@@ -11,6 +11,8 @@ import { OrderTrackingSection } from '@/components/storefront/OrderTrackingSecti
 import { Footer }               from '@/components/storefront/Footer'
 import { CartDrawer }           from '@/components/storefront/CartDrawer'
 import { WishlistDrawer }       from '@/components/storefront/WishlistDrawer'
+import { AddToCartPopup }       from '@/components/storefront/AddToCartPopup'
+import { MobileCheckoutBar }    from '@/components/storefront/MobileCheckoutBar'
 import { CustomCursor }         from '@/components/shared/CustomCursor'
 import { ToastContainer }       from '@/components/shared/Toast'
 import { useCartStore }         from '@/store/cartStore'
@@ -34,6 +36,8 @@ export default function StorefrontPage() {
   const [offline,            setOffline]            = useState(false)
   const [cartOpen,           setCartOpen]           = useState(false)
   const [wishlistOpen,       setWishlistOpen]       = useState(false)
+  const [cartPopup, setCartPopup] = useState<{ name: string; image?: string; price: number } | null>(null)
+  const lastAdded = useCartStore((s) => s.lastAdded)
 
   // Hydrate stores from localStorage (client only, avoids hydration mismatch)
   const hydrateCart     = useCartStore.persist?.rehydrate
@@ -44,6 +48,16 @@ export default function StorefrontPage() {
     hydrateCart?.()
     hydrateWishlist?.()
   }, [hydrateCart, hydrateWishlist])
+
+  // Show mobile popup when item is added to cart
+  useEffect(() => {
+    if (!lastAdded) return
+    setCartPopup({
+      name:  lastAdded.product_name,
+      image: lastAdded.product_image,
+      price: lastAdded.sale_price ?? lastAdded.price,
+    })
+  }, [lastAdded])
 
   // Sync session ID to stores
   useEffect(() => {
@@ -72,6 +86,18 @@ export default function StorefrontPage() {
         }}
       />
       <WishlistDrawer open={wishlistOpen} onClose={() => setWishlistOpen(false)} />
+      <AddToCartPopup
+        item={cartPopup}
+        onDismiss={() => setCartPopup(null)}
+        onViewCart={() => setCartOpen(true)}
+      />
+      <MobileCheckoutBar
+        onCheckout={() => {
+          setCartOpen(false)
+          const el = document.getElementById('checkout')
+          if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' })
+        }}
+      />
       <OfflineBanner show={offline} />
 
       <Header

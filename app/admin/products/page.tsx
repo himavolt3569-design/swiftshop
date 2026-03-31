@@ -450,12 +450,29 @@ export default function ProductsPage() {
           </div>
 
           {editing && (
-            <button
-              onClick={() => setDeleteConfirm(editing.id)}
-              className="w-full h-10 text-sm text-error font-label font-medium hover:bg-error/8 rounded-xl transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-error/20"
-            >
-              <Trash2 className="w-4 h-4" /> Delete Product
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={async () => {
+                  const res = await fetch('/api/admin/seed-reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: editing.id, count: 8 }),
+                  })
+                  const json = await res.json()
+                  if (res.ok) alert(`${json.inserted} demo reviews added!`)
+                  else alert(json.error ?? 'Failed to seed reviews')
+                }}
+                className="w-full h-10 text-sm text-primary font-label font-medium hover:bg-primary/8 rounded-xl transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-primary/20"
+              >
+                Generate Demo Reviews
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(editing.id)}
+                className="w-full h-10 text-sm text-error font-label font-medium hover:bg-error/8 rounded-xl transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-error/20"
+              >
+                <Trash2 className="w-4 h-4" /> Delete Product
+              </button>
+            </div>
           )}
         </div>
       </AdminDrawer>

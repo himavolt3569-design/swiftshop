@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Tag,
   Loader2,
@@ -37,18 +37,6 @@ const PAYMENT_METHODS: {
     description: "Pay when your order arrives",
     icon: "💵",
   },
-  {
-    id: "esewa",
-    label: "eSewa",
-    description: "You'll be redirected to eSewa to complete payment",
-    icon: "🟢",
-  },
-  {
-    id: "khalti",
-    label: "Khalti",
-    description: "You'll be redirected to Khalti to complete payment",
-    icon: "🟣",
-  },
 ];
 
 interface FormErrors {
@@ -60,8 +48,6 @@ function validate(data: Partial<OrderFormData>, items: unknown[]): FormErrors {
   if (!data.full_name?.trim()) e.full_name = "Full name is required";
   if (!data.phone?.match(/^(98|97)\d{8}$/))
     e.phone = "Enter a valid Nepal phone (98/97XXXXXXXX)";
-  if (!data.email?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
-    e.email = "Enter a valid email";
   if (!data.province) e.province = "Select a province";
   if (!data.district) e.district = "Select a district";
   if (!data.area?.trim()) e.area = "Area/Street is required";
@@ -118,11 +104,75 @@ export function CheckoutSection() {
   } | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState(1);
+  const [couriers, setCouriers] = useState<{ id: string; name: string }[]>([]);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [otpPhone, setOtpPhone]           = useState("");
+  const [otpCode, setOtpCode]             = useState("");
+  const [otpSent, setOtpSent]             = useState(false);
+  const [otpError, setOtpError]           = useState("");
+  const [otpLoading, setOtpLoading]       = useState(false);
+  const [otpResendTimer, setOtpResendTimer] = useState(0);
 
   const subtotal = getSubtotal();
   const discount = promoResult?.discount ?? 0;
   const total = Math.max(0, subtotal - discount);
   const deliveryFree = total >= 500;
+
+  // OTP resend timer countdown
+  useEffect(() => {
+    if (otpResendTimer <= 0) return
+    const t = setTimeout(() => setOtpResendTimer((v) => v - 1), 1000)
+    return () => clearTimeout(t)
+  }, [otpResendTimer])
+
+  const sendOtp = useCallback(async () => {
+    setOtpError("")
+    if (!otpPhone.match(/^(98|97)\d{8}$/)) {
+      setOtpError("Enter a valid Nepal phone (98/97XXXXXXXX)")
+      return
+    }
+    setOtpLoading(true)
+    const res = await fetch("/api/otp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: otpPhone }),
+    })
+    const json = await res.json()
+    setOtpLoading(false)
+    if (!res.ok) { setOtpError(json.error ?? "Failed to send OTP"); return }
+    setOtpSent(true)
+    setOtpResendTimer(60)
+    setForm((f) => ({ ...f, phone: otpPhone }))
+    // Dev mode: auto-fill OTP
+    if (json.dev_code) { setOtpCode(json.dev_code); addToast("info", `Dev OTP: ${json.dev_code}`) }
+  }, [otpPhone, addToast])
+
+  const verifyOtp = useCallback(async () => {
+    setOtpError("")
+    if (otpCode.length !== 6) { setOtpError("Enter the 6-digit OTP"); return }
+    setOtpLoading(true)
+    const res = await fetch("/api/otp/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: otpPhone, code: otpCode }),
+    })
+    const json = await res.json()
+    setOtpLoading(false)
+    if (!res.ok) { setOtpError(json.error ?? "Verification failed"); return }
+    setPhoneVerified(true)
+    setForm((f) => ({ ...f, phone: otpPhone }))
+    addToast("success", "Phone number verified!")
+  }, [otpPhone, otpCode, addToast])
+
+  // Fetch couriers
+  useEffect(() => {
+    supabase
+      .from("couriers")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("priority")
+      .then(({ data }) => { if (data) setCouriers(data) })
+  }, [])
 
   // GSAP entry animation
   useEffect(() => {
@@ -209,14 +259,13 @@ export function CheckoutSection() {
           session_id: sessionId,
           customer_name: form.full_name,
           customer_phone: form.phone,
-          customer_email: form.email,
           province: form.province,
           district: form.district,
+          city: form.city ?? null,
           area: form.area,
           landmark: form.landmark ?? null,
-          lat: form.lat ?? null,
-          lng: form.lng ?? null,
           payment_method: form.payment_method,
+          courier_id: form.courier_id ?? null,
           notes: form.notes ?? null,
           promo_code: form.promo_code ?? null,
           subtotal,
@@ -244,45 +293,6 @@ export function CheckoutSection() {
       }
 
       clearCart();
-
-      // Redirect to payment gateway for digital wallets
-      if (data && form.payment_method === "esewa") {
-        const returnUrl = encodeURIComponent(
-          `${window.location.origin}/?order=${data.order_number}&payment=esewa`
-        );
-        const esewaUrl =
-          `https://rc-epay.esewa.com.np/api/epay/main/v2/form` +
-          `?amt=${total}` +
-          `&pdc=0&psc=0&txAmt=0&tAmt=${total}` +
-          `&pid=${data.order_number}` +
-          `&scd=${process.env.NEXT_PUBLIC_ESEWA_MERCHANT_ID ?? "EPAYTEST"}` +
-          `&su=${returnUrl}` +
-          `&fu=${returnUrl}`;
-        window.location.href = esewaUrl;
-        return;
-      }
-
-      if (data && form.payment_method === "khalti") {
-        const returnUrl = `${window.location.origin}/?order=${data.order_number}&payment=khalti`;
-        const res = await fetch("/api/khalti/initiate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            order_number: data.order_number,
-            amount: total * 100, // paisa
-            customer_name: form.full_name,
-            customer_phone: form.phone,
-            customer_email: form.email,
-            return_url: returnUrl,
-          }),
-        });
-        const json = await res.json();
-        if (json.payment_url) {
-          window.location.href = json.payment_url;
-          return;
-        }
-      }
-
       setOrderComplete(data);
     } catch (err: unknown) {
       setSubmitError(
@@ -331,8 +341,7 @@ export function CheckoutSection() {
             </p>
           </div>
           <p className="text-sm text-on-surface-variant font-body mb-8">
-            We'll send updates to your email. Expected delivery in 2–4 business
-            days.
+            Expected delivery in 2–4 business days.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -602,6 +611,60 @@ export function CheckoutSection() {
               {activeStep === 2 && (
                 <div className="px-5 pb-5 border-t border-outline-variant/10">
                   <div className="space-y-4 mt-4">
+                    {/* Phone OTP verification */}
+                    {!phoneVerified ? (
+                      <div className="bg-surface-container-low rounded-xl p-4 space-y-3 border border-outline-variant/20">
+                        <p className="text-xs font-bold text-on-surface font-label uppercase tracking-wider">Verify Phone Number</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="tel"
+                            value={otpPhone}
+                            placeholder="98XXXXXXXX"
+                            maxLength={10}
+                            onChange={(e) => { setOtpPhone(e.target.value); setOtpSent(false); setOtpError("") }}
+                            className="flex-1 h-10 px-3 bg-surface-container-lowest border border-outline-variant/40 rounded-lg text-sm font-body focus:outline-none focus:border-primary transition-colors"
+                          />
+                          <button
+                            onClick={sendOtp}
+                            disabled={otpLoading || otpResendTimer > 0}
+                            className="px-4 h-10 bg-primary text-white text-xs font-label font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 shrink-0"
+                          >
+                            {otpLoading && !otpSent ? "Sending…" : otpResendTimer > 0 ? `Resend (${otpResendTimer}s)` : otpSent ? "Resend" : "Send OTP"}
+                          </button>
+                        </div>
+                        {otpSent && (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={otpCode}
+                              placeholder="Enter 6-digit OTP"
+                              maxLength={6}
+                              inputMode="numeric"
+                              onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, "")); setOtpError("") }}
+                              className="flex-1 h-10 px-3 bg-surface-container-lowest border border-outline-variant/40 rounded-lg text-sm font-body focus:outline-none focus:border-primary transition-colors tracking-widest"
+                            />
+                            <button
+                              onClick={verifyOtp}
+                              disabled={otpLoading}
+                              className="px-4 h-10 bg-success text-white text-xs font-label font-semibold rounded-lg hover:bg-success/90 transition-colors disabled:opacity-50 shrink-0"
+                            >
+                              {otpLoading ? "Verifying…" : "Verify"}
+                            </button>
+                          </div>
+                        )}
+                        {otpError && <p className="text-xs text-error font-label">{otpError}</p>}
+                        {otpSent && !otpError && <p className="text-xs text-on-surface-variant font-body">OTP sent to {otpPhone}. Valid for 10 minutes.</p>}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-success/10 border border-success/30 rounded-xl">
+                        <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                        <p className="text-xs font-semibold text-success font-label">Phone verified: {otpPhone}</p>
+                      </div>
+                    )}
+
+                    {/* Full Name + rest of form — only shown after phone verified */}
+                    {phoneVerified && (
+                    <div className="space-y-4">
                     {/* Full Name */}
                     <div>
                       <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5 font-label">
@@ -621,59 +684,69 @@ export function CheckoutSection() {
                         </p>
                       )}
                     </div>
-                    {/* Phone + Email */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5 font-label">
-                          Phone <span className="text-error">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          value={form.phone ?? ""}
-                          placeholder="98XXXXXXXX"
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, phone: e.target.value }))
-                          }
-                          className={`search-input w-full h-11 px-3 bg-surface-container-lowest border rounded-xl text-sm font-body transition-colors ${errors.phone ? "border-error" : "border-outline-variant/40 focus:border-primary"}`}
-                        />
-                        {errors.phone && (
-                          <p className="text-xs text-error mt-1 font-label">
-                            {errors.phone}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5 font-label">
-                          Email <span className="text-error">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          value={form.email ?? ""}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, email: e.target.value }))
-                          }
-                          className={`search-input w-full h-11 px-3 bg-surface-container-lowest border rounded-xl text-sm font-body transition-colors ${errors.email ? "border-error" : "border-outline-variant/40 focus:border-primary"}`}
-                        />
-                        {errors.email && (
-                          <p className="text-xs text-error mt-1 font-label">
-                            {errors.email}
-                          </p>
-                        )}
-                      </div>
-                    </div>
 
                     <AddressForm
                       value={{
                         province: form.province ?? "",
                         district: form.district ?? "",
+                        city: form.city ?? "",
                         area: form.area ?? "",
                         landmark: form.landmark,
-                        lat: form.lat,
-                        lng: form.lng,
                       }}
                       onChange={(u) => setForm((f) => ({ ...f, ...u }))}
                       errors={errors}
                     />
+
+                    {/* Courier selection */}
+                    {couriers.length > 0 && (
+                      <div>
+                        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 font-label">
+                          <Truck className="w-3.5 h-3.5 inline mr-1" />
+                          Select Courier
+                        </label>
+                        <div className="space-y-2">
+                          {couriers.map((c) => (
+                            <label
+                              key={c.id}
+                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.courier_id === c.id ? "border-primary bg-primary/5" : "border-outline-variant/30 hover:border-outline-variant"}`}
+                            >
+                              <input
+                                type="radio"
+                                name="courier"
+                                value={c.id}
+                                checked={form.courier_id === c.id}
+                                onChange={() => setForm((f) => ({ ...f, courier_id: c.id }))}
+                                className="sr-only"
+                              />
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${form.courier_id === c.id ? "border-primary" : "border-outline-variant"}`}>
+                                {form.courier_id === c.id && <div className="w-2 h-2 rounded-full bg-primary" />}
+                              </div>
+                              <span className="text-sm font-semibold text-on-surface font-label">{c.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Order items summary in delivery step */}
+                    {items.length > 0 && (
+                      <div className="bg-surface-container-low rounded-xl p-3 space-y-2">
+                        <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider font-label">Ordering</p>
+                        {items.map((item) => (
+                          <div key={`${item.product_id}-${item.size}`} className="flex items-center gap-2">
+                            <div className="w-8 h-10 rounded-lg overflow-hidden bg-surface-container shrink-0">
+                              {item.product_image ? (
+                                <Image src={item.product_image} alt={item.product_name} width={32} height={40} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-xs text-on-surface-variant/30">{item.product_name.charAt(0)}</div>
+                              )}
+                            </div>
+                            <p className="flex-1 text-xs text-on-surface font-body line-clamp-1">{item.product_name} ×{item.quantity}</p>
+                            <span className="text-xs font-bold text-primary shrink-0">NPR {((item.sale_price ?? item.price) * item.quantity).toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     <button
                       onClick={() => setActiveStep(3)}
@@ -681,6 +754,8 @@ export function CheckoutSection() {
                     >
                       Continue to Payment <ChevronRight className="w-4 h-4" />
                     </button>
+                    </div>
+                    )}
                   </div>
                 </div>
               )}

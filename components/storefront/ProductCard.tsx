@@ -64,11 +64,15 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     >
       {/* Image */}
       <div className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/40 rounded-lg overflow-hidden relative transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-lift">
-        {product.stock <= 0 && (
-          <span className="absolute top-3 left-3 z-10 bg-inverse-surface text-inverse-on-surface text-[11px] px-2 py-0.5 rounded font-label">
+        {product.stock <= 0 ? (
+          <span className="absolute top-2 left-2 z-10 bg-inverse-surface text-inverse-on-surface text-[10px] px-1.5 py-0.5 rounded font-label">
             Out of Stock
           </span>
-        )}
+        ) : product.sale_price ? (
+          <span className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded font-label">
+            -{Math.round(((product.price - product.sale_price) / product.price) * 100)}%
+          </span>
+        ) : null}
 
         {firstImage ? (
           <Image
@@ -99,7 +103,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <p className="text-[10px] uppercase tracking-wide text-on-surface-variant mb-1 font-label">
           {product.category?.name ?? ''}
         </p>
-        <h3 className="text-[15px] font-medium text-on-surface leading-snug line-clamp-2 font-body mb-1">
+        <h3 className="text-[13px] font-semibold text-on-surface leading-snug line-clamp-1 font-body mb-1">
           {product.name}
         </h3>
         <div className="flex items-center gap-2 mb-1.5">

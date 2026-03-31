@@ -62,19 +62,18 @@ export interface WishlistItem {
   sale_price?: number | null
 }
 
-export type PaymentMethod = 'cash_on_delivery' | 'esewa' | 'khalti'
+export type PaymentMethod = 'cash_on_delivery'
 
 export interface OrderFormData {
   full_name: string
   phone: string
-  email: string
   province: string
   district: string
+  city?: string
   area: string
   landmark?: string
-  lat?: number | null
-  lng?: number | null
   payment_method: PaymentMethod
+  courier_id?: string
   notes?: string
   promo_code?: string
 }
@@ -104,6 +103,7 @@ export interface Order {
   customer_email: string
   province: string
   district: string
+  city?: string
   area: string
   landmark?: string
   lat?: number

@@ -10,6 +10,15 @@ import { Courier } from '@/lib/types'
 
 const EMPTY_FORM = { name: '', api_endpoint: '', api_key: '', hq_lat: '', hq_lng: '', coverage_radius_km: '', priority: '1', is_active: true }
 
+const NEPALI_COURIERS = [
+  { name: 'Prabhu Courier',      hq_lat: 27.7172, hq_lng: 85.3240, coverage_radius_km: 100, priority: 1 },
+  { name: 'Blue Dart Nepal',     hq_lat: 27.7172, hq_lng: 85.3240, coverage_radius_km: 80,  priority: 2 },
+  { name: 'DHL Express Nepal',   hq_lat: 27.7172, hq_lng: 85.3240, coverage_radius_km: 150, priority: 3 },
+  { name: 'First Flight Courier',hq_lat: 27.7172, hq_lng: 85.3240, coverage_radius_km: 80,  priority: 4 },
+  { name: 'Aramex Nepal',        hq_lat: 27.7172, hq_lng: 85.3240, coverage_radius_km: 120, priority: 5 },
+  { name: 'Khaali Sisiss',       hq_lat: 27.7172, hq_lng: 85.3240, coverage_radius_km: 50,  priority: 6 },
+]
+
 export default function CouriersPage() {
   const [couriers,   setCouriers]   = useState<Courier[]>([])
   const [loading,    setLoading]    = useState(true)
@@ -60,9 +69,27 @@ export default function CouriersPage() {
           <h2 className="font-headline text-4xl font-bold text-on-surface tracking-tight mb-1">Couriers</h2>
           <p className="text-on-surface-variant font-body text-sm">{couriers.length} courier{couriers.length !== 1 ? 's' : ''}</p>
         </div>
-        <button onClick={openNew} className="admin-btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Courier
-        </button>
+        <div className="flex items-center gap-3">
+          {couriers.length === 0 && !loading && (
+            <button
+              onClick={async () => {
+                const payloads = NEPALI_COURIERS.map((c) => ({
+                  ...c, api_endpoint: '', api_key: '', is_active: true,
+                }))
+                const { error } = await supabase.from('couriers').insert(payloads)
+                if (error) { addToast('error', 'Failed to seed couriers'); return }
+                addToast('success', 'Nepali couriers seeded!')
+                fetchAll()
+              }}
+              className="admin-btn-secondary flex items-center gap-2"
+            >
+              Seed Nepali Couriers
+            </button>
+          )}
+          <button onClick={openNew} className="admin-btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Courier
+          </button>
+        </div>
       </div>
 
       {loading ? (

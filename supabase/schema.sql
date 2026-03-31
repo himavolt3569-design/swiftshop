@@ -309,3 +309,18 @@ create policy "admin all social channels" on social_channels
 
 create policy "admin all social orders" on social_orders
   for all using (true) with check (true);
+
+
+-- OTP sessions (for phone verification)
+create table if not exists otp_sessions (
+  id         uuid primary key default uuid_generate_v4(),
+  phone      text not null unique,
+  code       text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+-- Allow server-side (service role) full access; no public access
+alter table otp_sessions enable row level security;
+create policy "service role only otp" on otp_sessions
+  for all using (false) with check (false);

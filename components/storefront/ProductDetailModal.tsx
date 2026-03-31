@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import {
   X, Star, ChevronLeft, ChevronRight, Minus, Plus,
-  Heart, ShoppingCart, Zap, Shield, Truck, RotateCcw,
-  Share2, ZoomIn, Check, Package,
+  Heart, ShoppingCart, Zap, Truck, RotateCcw,
+  Share2, ZoomIn, Check, ChevronDown,
 } from 'lucide-react'
 import { Product, Review } from '@/lib/types'
 import { supabase }         from '@/lib/supabase'
@@ -17,6 +17,7 @@ interface ProductDetailModalProps {
   product: Product | null
   onClose: () => void
   onBuyNow?: () => void
+  onSelectProduct?: (product: Product) => void
 }
 
 // ─── Stars helper ────────────────────────────────────────────
@@ -30,21 +31,6 @@ function Stars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) 
           className={`${cls} ${s <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-outline-variant fill-outline-variant/20'}`}
         />
       ))}
-    </div>
-  )
-}
-
-// ─── Trust badge ─────────────────────────────────────────────
-function TrustBadge({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-container-low border border-outline-variant/20">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-on-surface font-label">{title}</p>
-        <p className="text-[11px] text-on-surface-variant font-body mt-0.5">{sub}</p>
-      </div>
     </div>
   )
 }
@@ -65,7 +51,7 @@ function RatingBar({ star, count, total }: { star: number; count: number; total:
 }
 
 // ─── Main component ───────────────────────────────────────────
-export function ProductDetailModal({ product, onClose, onBuyNow }: ProductDetailModalProps) {
+export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct }: ProductDetailModalProps) {
   const [activeImage,   setActiveImage]   = useState(0)
   const [selectedSize,  setSelectedSize]  = useState<string | null>(null)
   const [quantity,      setQuantity]      = useState(1)
@@ -77,7 +63,7 @@ export function ProductDetailModal({ product, onClose, onBuyNow }: ProductDetail
   const [addedToCart,   setAddedToCart]   = useState(false)
   const [zoomed,        setZoomed]        = useState(false)
   const [zoomPos,       setZoomPos]       = useState({ x: 50, y: 50 })
-  const [activeTab,     setActiveTab]     = useState<'description' | 'reviews' | 'shipping'>('description')
+  const [activeTab,     setActiveTab]     = useState<'description' | 'reviews' | 'shipping' | null>(null)
   const [reviewForm,    setReviewForm]    = useState({ name: '', rating: 5, comment: '' })
   const [submittingReview, setSubmittingReview] = useState(false)
   const [hasPurchased,  setHasPurchased]  = useState(false)
@@ -97,7 +83,7 @@ export function ProductDetailModal({ product, onClose, onBuyNow }: ProductDetail
     setSelectedSize(product.sizes?.length ? (product.sizes[0]?.size ?? null) : 'ONE_SIZE')
     setQuantity(1)
     setAddedToCart(false)
-    setActiveTab('description')
+    setActiveTab(null)
     setZoomed(false)
     setReviewForm({ name: '', rating: 5, comment: '' })
   }, [product?.id])
@@ -139,14 +125,14 @@ export function ProductDetailModal({ product, onClose, onBuyNow }: ProductDetail
         .eq('category_id', product.category_id)
         .neq('id', product.id)
         .eq('is_active', true)
-        .limit(6)
+        .limit(10)
       if (!rel || rel.length === 0) {
         const { data: fb } = await supabase
           .from('products')
           .select('*, category:categories(name), images, sizes')
           .neq('id', product.id)
           .eq('is_active', true)
-          .limit(6)
+          .limit(10)
         rel = fb
       }
       setRelated((rel as Product[]) ?? [])
@@ -448,7 +434,7 @@ export function ProductDetailModal({ product, onClose, onBuyNow }: ProductDetail
                         <Stars rating={avgRating} size="md" />
                         <span className="text-sm font-bold text-on-surface">{avgRating.toFixed(1)}</span>
                         <button
-                          onClick={() => setActiveTab('reviews')}
+                          onClick={() => setActiveTab((t) => t === 'reviews' ? null : 'reviews')}
                           className="text-sm text-primary hover:underline font-label"
                         >
                           {reviewCount} review{reviewCount !== 1 ? 's' : ''}
@@ -579,155 +565,154 @@ export function ProductDetailModal({ product, onClose, onBuyNow }: ProductDetail
                     </button>
                   </div>
 
-                  {/* Trust badges */}
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    <TrustBadge icon={<Truck className="w-4 h-4" />}       title="Free Delivery"   sub="Orders above NPR 500" />
-                    <TrustBadge icon={<Shield className="w-4 h-4" />}      title="Secure Payment"  sub="100% protected" />
-                    <TrustBadge icon={<RotateCcw className="w-4 h-4" />}   title="Easy Returns"    sub="7-day return policy" />
-                    <TrustBadge icon={<Package className="w-4 h-4" />}     title="Authentic"       sub="Verified artisans" />
-                  </div>
-
-                  {/* Tabs: Description / Reviews / Shipping */}
-                  <div className="pt-2">
-                    <div className="flex gap-1 bg-surface-container rounded-xl p-1">
-                      {(['description', 'reviews', 'shipping'] as const).map((tab) => (
-                        <button
-                          key={tab}
-                          onClick={() => setActiveTab(tab)}
-                          className={`flex-1 py-2 rounded-lg text-xs font-label font-semibold capitalize transition-all ${
-                            activeTab === tab
-                              ? 'bg-background text-primary shadow-float'
-                              : 'text-on-surface-variant hover:text-on-surface'
-                          }`}
-                        >
-                          {tab}{tab === 'reviews' && reviewCount > 0 ? ` (${reviewCount})` : ''}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Tab content – fixed min-height prevents layout shift */}
-                    <div className="mt-4 min-h-[180px]">
+                  {/* Accordion: Description / Reviews / Shipping */}
+                  <div className="pt-2 border-t border-outline-variant/15 space-y-0">
 
                     {/* Description */}
-                    {activeTab === 'description' && (
-                      <p className="text-sm text-on-surface-variant leading-relaxed font-body">
-                        {product.description || 'No description available for this product.'}
-                      </p>
-                    )}
+                    <div className="border-b border-outline-variant/15">
+                      <button
+                        onClick={() => setActiveTab((t) => t === 'description' ? null : 'description')}
+                        className="w-full flex items-center justify-between py-3 text-xs font-bold text-on-surface font-label uppercase tracking-wider"
+                      >
+                        Description
+                        <ChevronDown className={`w-4 h-4 text-on-surface-variant transition-transform duration-200 ${activeTab === 'description' ? 'rotate-180' : ''}`} />
+                      </button>
+                      {activeTab === 'description' && (
+                        <p className="pb-4 text-sm text-on-surface-variant leading-relaxed font-body">
+                          {product.description || 'No description available for this product.'}
+                        </p>
+                      )}
+                    </div>
 
                     {/* Reviews */}
-                    {activeTab === 'reviews' && (
-                      <div className="space-y-4">
-                        {reviewCount > 0 && (
-                          <div className="flex gap-6 p-4 bg-surface-container rounded-xl">
-                            <div className="text-center shrink-0">
-                              <p className="text-4xl font-bold text-on-surface font-headline">{avgRating.toFixed(1)}</p>
-                              <Stars rating={avgRating} size="sm" />
-                              <p className="text-xs text-on-surface-variant mt-1 font-label">{reviewCount} reviews</p>
+                    <div className="border-b border-outline-variant/15">
+                      <button
+                        onClick={() => setActiveTab((t) => t === 'reviews' ? null : 'reviews')}
+                        className="w-full flex items-center justify-between py-3 text-xs font-bold text-on-surface font-label uppercase tracking-wider"
+                      >
+                        Reviews{reviewCount > 0 ? ` (${reviewCount})` : ''}
+                        <ChevronDown className={`w-4 h-4 text-on-surface-variant transition-transform duration-200 ${activeTab === 'reviews' ? 'rotate-180' : ''}`} />
+                      </button>
+                      {activeTab === 'reviews' && (
+                        <div className="pb-4 space-y-4">
+                          {reviewCount > 0 && (
+                            <div className="flex gap-6 p-4 bg-surface-container rounded-xl">
+                              <div className="text-center shrink-0">
+                                <p className="text-4xl font-bold text-on-surface font-headline">{avgRating.toFixed(1)}</p>
+                                <Stars rating={avgRating} size="sm" />
+                                <p className="text-xs text-on-surface-variant mt-1 font-label">{reviewCount} reviews</p>
+                              </div>
+                              <div className="flex-1 space-y-1.5">
+                                {[5, 4, 3, 2, 1].map((s) => (
+                                  <RatingBar key={s} star={s} count={ratingDist[s] ?? 0} total={reviewCount} />
+                                ))}
+                              </div>
                             </div>
-                            <div className="flex-1 space-y-1.5">
-                              {[5, 4, 3, 2, 1].map((s) => (
-                                <RatingBar key={s} star={s} count={ratingDist[s] ?? 0} total={reviewCount} />
-                              ))}
+                          )}
+
+                          {hasPurchased ? (
+                            <div className="border border-outline-variant/30 rounded-xl p-4 space-y-3">
+                              <p className="text-xs font-bold text-on-surface font-label uppercase tracking-wider">Write a Review</p>
+                              <input
+                                className="w-full h-9 px-3 rounded-lg border border-outline-variant/40 bg-background text-sm text-on-surface font-body placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/60"
+                                placeholder="Your name"
+                                value={reviewForm.name}
+                                onChange={(e) => setReviewForm((f) => ({ ...f, name: e.target.value }))}
+                              />
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <button key={s} type="button" onClick={() => setReviewForm((f) => ({ ...f, rating: s }))} className="p-0.5">
+                                    <Star className={`w-5 h-5 transition-colors ${s <= reviewForm.rating ? 'fill-amber-400 text-amber-400' : 'text-outline-variant fill-outline-variant/20'}`} />
+                                  </button>
+                                ))}
+                                <span className="text-xs text-on-surface-variant font-label ml-1">{reviewForm.rating}/5</span>
+                              </div>
+                              <textarea
+                                className="w-full h-20 px-3 py-2 rounded-lg border border-outline-variant/40 bg-background text-sm text-on-surface font-body placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/60 resize-none"
+                                placeholder="Share your experience..."
+                                value={reviewForm.comment}
+                                onChange={(e) => setReviewForm((f) => ({ ...f, comment: e.target.value }))}
+                              />
+                              <button
+                                onClick={handleSubmitReview}
+                                disabled={submittingReview}
+                                className="h-9 px-5 bg-primary text-white text-sm font-label font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                              >
+                                {submittingReview ? 'Submitting…' : 'Submit Review'}
+                              </button>
                             </div>
-                          </div>
-                        )}
-
-                        {/* Review submission — only if purchased */}
-                        {hasPurchased ? (
-                          <div className="border border-outline-variant/30 rounded-xl p-4 space-y-3">
-                            <p className="text-xs font-bold text-on-surface font-label uppercase tracking-wider">Write a Review</p>
-                            <input
-                              className="w-full h-9 px-3 rounded-lg border border-outline-variant/40 bg-background text-sm text-on-surface font-body placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/60"
-                              placeholder="Your name"
-                              value={reviewForm.name}
-                              onChange={(e) => setReviewForm((f) => ({ ...f, name: e.target.value }))}
-                            />
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((s) => (
-                                <button key={s} type="button" onClick={() => setReviewForm((f) => ({ ...f, rating: s }))} className="p-0.5">
-                                  <Star className={`w-5 h-5 transition-colors ${s <= reviewForm.rating ? 'fill-amber-400 text-amber-400' : 'text-outline-variant fill-outline-variant/20'}`} />
-                                </button>
-                              ))}
-                              <span className="text-xs text-on-surface-variant font-label ml-1">{reviewForm.rating}/5</span>
+                          ) : (
+                            <div className="border border-outline-variant/20 rounded-xl p-4 text-center bg-surface-container-low">
+                              <p className="text-sm font-semibold text-on-surface font-label mb-1">Verified purchases only</p>
+                              <p className="text-xs text-on-surface-variant font-body">Buy this product to leave a review.</p>
                             </div>
-                            <textarea
-                              className="w-full h-20 px-3 py-2 rounded-lg border border-outline-variant/40 bg-background text-sm text-on-surface font-body placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/60 resize-none"
-                              placeholder="Share your experience..."
-                              value={reviewForm.comment}
-                              onChange={(e) => setReviewForm((f) => ({ ...f, comment: e.target.value }))}
-                            />
-                            <button
-                              onClick={handleSubmitReview}
-                              disabled={submittingReview}
-                              className="h-9 px-5 bg-primary text-white text-sm font-label font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-                            >
-                              {submittingReview ? 'Submitting…' : 'Submit Review'}
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="border border-outline-variant/20 rounded-xl p-4 text-center bg-surface-container-low">
-                            <p className="text-sm font-semibold text-on-surface font-label mb-1">Verified purchases only</p>
-                            <p className="text-xs text-on-surface-variant font-body">Buy this product to leave a review.</p>
-                          </div>
-                        )}
+                          )}
 
-                        {reviews.length === 0 && (
-                          <p className="text-sm text-on-surface-variant font-body py-1">No reviews yet — be the first!</p>
-                        )}
+                          {reviews.length === 0 && (
+                            <p className="text-sm text-on-surface-variant font-body py-1">No reviews yet — be the first!</p>
+                          )}
 
-                        <div className="space-y-4">
-                          {reviews.map((r) => (
-                            <div key={r.id} className="border-b border-outline-variant/20 pb-4 last:border-0">
-                              <div className="flex items-start justify-between mb-1.5">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary font-label">
-                                    {r.customer_name.charAt(0).toUpperCase()}
+                          <div className="space-y-4">
+                            {reviews.map((r) => (
+                              <div key={r.id} className="border-b border-outline-variant/20 pb-4 last:border-0">
+                                <div className="flex items-start justify-between mb-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary font-label">
+                                      {r.customer_name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="text-sm font-semibold text-on-surface font-label">
+                                      {r.customer_name.split(' ')[0]}
+                                    </span>
                                   </div>
-                                  <span className="text-sm font-semibold text-on-surface font-label">
-                                    {r.customer_name.split(' ')[0]}
+                                  <span className="text-xs text-on-surface-variant font-body">
+                                    {new Date(r.created_at).toLocaleDateString('en-NP', { month: 'short', day: 'numeric', year: 'numeric' })}
                                   </span>
                                 </div>
-                                <span className="text-xs text-on-surface-variant font-body">
-                                  {new Date(r.created_at).toLocaleDateString('en-NP', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                </span>
+                                <Stars rating={r.rating} />
+                                <p className="text-sm text-on-surface-variant font-body leading-relaxed mt-1.5">{r.comment}</p>
                               </div>
-                              <Stars rating={r.rating} />
-                              <p className="text-sm text-on-surface-variant font-body leading-relaxed mt-1.5">{r.comment}</p>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     {/* Shipping */}
-                    {activeTab === 'shipping' && (
-                      <div className="space-y-3 text-sm text-on-surface-variant font-body">
-                        <div className="flex items-start gap-3 py-2 border-b border-outline-variant/20">
-                          <Truck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="font-semibold text-on-surface">Standard Delivery</p>
-                            <p>2–4 business days across Nepal. Free on orders above NPR 500.</p>
+                    <div className="border-b border-outline-variant/15">
+                      <button
+                        onClick={() => setActiveTab((t) => t === 'shipping' ? null : 'shipping')}
+                        className="w-full flex items-center justify-between py-3 text-xs font-bold text-on-surface font-label uppercase tracking-wider"
+                      >
+                        Shipping & Returns
+                        <ChevronDown className={`w-4 h-4 text-on-surface-variant transition-transform duration-200 ${activeTab === 'shipping' ? 'rotate-180' : ''}`} />
+                      </button>
+                      {activeTab === 'shipping' && (
+                        <div className="pb-4 space-y-3 text-sm text-on-surface-variant font-body">
+                          <div className="flex items-start gap-3 py-2 border-b border-outline-variant/20">
+                            <Truck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                            <div>
+                              <p className="font-semibold text-on-surface">Standard Delivery</p>
+                              <p>2–4 business days across Nepal. Free on orders above NPR 500.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 py-2 border-b border-outline-variant/20">
+                            <Zap className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                            <div>
+                              <p className="font-semibold text-on-surface">Express Delivery</p>
+                              <p>Same-day delivery available in Kathmandu Valley.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 py-2">
+                            <RotateCcw className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                            <div>
+                              <p className="font-semibold text-on-surface">Returns & Exchanges</p>
+                              <p>7-day hassle-free returns on unused items in original packaging.</p>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-start gap-3 py-2 border-b border-outline-variant/20">
-                          <Zap className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="font-semibold text-on-surface">Express Delivery</p>
-                            <p>Same-day delivery available in Kathmandu Valley.</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3 py-2">
-                          <RotateCcw className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="font-semibold text-on-surface">Returns & Exchanges</p>
-                            <p>7-day hassle-free returns on unused items in original packaging.</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
-                    </div>{/* end tab content */}
                   </div>
                 </div>
 
@@ -739,7 +724,7 @@ export function ProductDetailModal({ product, onClose, onBuyNow }: ProductDetail
                       {related.map((r) => (
                         <button
                           key={r.id}
-                          onClick={() => { /* parent will handle via onSelect */ }}
+                          onClick={() => onSelectProduct ? onSelectProduct(r) : undefined}
                           className="shrink-0 w-28 text-left group"
                         >
                           <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container border border-outline-variant/20 mb-2 group-hover:shadow-float transition-shadow">

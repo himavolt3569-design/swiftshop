@@ -9,6 +9,7 @@ interface CartState {
   items: CartItem[]
   sessionId: string | null
   bouncing: boolean
+  lastAdded: CartItem | null
   addItem: (item: CartItem) => void
   removeItem: (productId: string, size: string) => void
   updateQuantity: (productId: string, size: string, qty: number) => void
@@ -25,6 +26,7 @@ export const useCartStore = create<CartState>()(
       items: [],
       sessionId: null,
       bouncing: false,
+      lastAdded: null,
 
       addItem: (newItem) => {
         set((state) => {
@@ -38,7 +40,7 @@ export const useCartStore = create<CartState>()(
                   : i
               )
             : [...state.items, newItem]
-          return { items, bouncing: true }
+          return { items, bouncing: true, lastAdded: newItem }
         })
         setTimeout(() => set({ bouncing: false }), 500)
         get().syncToSupabase()
