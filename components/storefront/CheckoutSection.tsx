@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Tag,
   Loader2,
@@ -16,14 +16,14 @@ import {
   Truck,
   Zap,
 } from "lucide-react";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 import Image from "next/image";
 import { gsap } from "@/lib/gsap";
 import { useCartStore } from "@/store/cartStore";
 import { useSessionStore } from "@/store/sessionStore";
 import { supabase } from "@/lib/supabase";
 import { AddressForm } from "./AddressForm";
-import { OrderFormData, PaymentMethod } from "@/lib/types";
+import { OrderFormData, PaymentMethod, Courier } from "@/lib/types";
+import { DISTRICT_COORDS, haversineKm } from "@/lib/constants/districtCoords";
 
 const PAYMENT_METHODS: {
   id: PaymentMethod;
@@ -83,7 +83,6 @@ export function CheckoutSection() {
   const { items, getSubtotal, removeItem, updateQuantity, clearCart } =
     useCartStore();
   const { sessionId, addToast } = useSessionStore();
-  const captchaRef = useRef<HCaptcha>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -102,77 +101,53 @@ export function CheckoutSection() {
   const [orderComplete, setOrderComplete] = useState<{
     order_number: string;
   } | null>(null);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState(1);
-  const [couriers, setCouriers] = useState<{ id: string; name: string }[]>([]);
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const [otpPhone, setOtpPhone]           = useState("");
-  const [otpCode, setOtpCode]             = useState("");
-  const [otpSent, setOtpSent]             = useState(false);
-  const [otpError, setOtpError]           = useState("");
-  const [otpLoading, setOtpLoading]       = useState(false);
-  const [otpResendTimer, setOtpResendTimer] = useState(0);
+  const [couriers, setCouriers] = useState<Courier[]>([]);
+  const [recommendedCourierId, setRecommendedCourierId] = useState<string | null>(null);
 
   const subtotal = getSubtotal();
   const discount = promoResult?.discount ?? 0;
   const total = Math.max(0, subtotal - discount);
   const deliveryFree = total >= 500;
 
-  // OTP resend timer countdown
-  useEffect(() => {
-    if (otpResendTimer <= 0) return
-    const t = setTimeout(() => setOtpResendTimer((v) => v - 1), 1000)
-    return () => clearTimeout(t)
-  }, [otpResendTimer])
-
-  const sendOtp = useCallback(async () => {
-    setOtpError("")
-    if (!otpPhone.match(/^(98|97)\d{8}$/)) {
-      setOtpError("Enter a valid Nepal phone (98/97XXXXXXXX)")
-      return
-    }
-    setOtpLoading(true)
-    const res = await fetch("/api/otp/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone: otpPhone }),
-    })
-    const json = await res.json()
-    setOtpLoading(false)
-    if (!res.ok) { setOtpError(json.error ?? "Failed to send OTP"); return }
-    setOtpSent(true)
-    setOtpResendTimer(60)
-    setForm((f) => ({ ...f, phone: otpPhone }))
-    // Dev mode: auto-fill OTP
-    if (json.dev_code) { setOtpCode(json.dev_code); addToast("info", `Dev OTP: ${json.dev_code}`) }
-  }, [otpPhone, addToast])
-
-  const verifyOtp = useCallback(async () => {
-    setOtpError("")
-    if (otpCode.length !== 6) { setOtpError("Enter the 6-digit OTP"); return }
-    setOtpLoading(true)
-    const res = await fetch("/api/otp/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone: otpPhone, code: otpCode }),
-    })
-    const json = await res.json()
-    setOtpLoading(false)
-    if (!res.ok) { setOtpError(json.error ?? "Verification failed"); return }
-    setPhoneVerified(true)
-    setForm((f) => ({ ...f, phone: otpPhone }))
-    addToast("success", "Phone number verified!")
-  }, [otpPhone, otpCode, addToast])
-
-  // Fetch couriers
+  // Fetch couriers (full data for distance-based recommendation)
   useEffect(() => {
     supabase
       .from("couriers")
-      .select("id, name")
+      .select("*")
       .eq("is_active", true)
       .order("priority")
-      .then(({ data }) => { if (data) setCouriers(data) })
+      .then(({ data }) => { if (data) setCouriers(data as Courier[]) })
   }, [])
+
+  // Auto-recommend courier when district changes
+  useEffect(() => {
+    if (!form.district || !couriers.length) return
+    const coords = DISTRICT_COORDS[form.district]
+
+    const scored = couriers.map((c) => {
+      // Tier 1: courier explicitly covers this district
+      const coversDistrict = c.covered_districts?.includes(form.district!) ?? false
+      // Tier 2: fallback — HQ radius
+      const dist = coords ? haversineKm(coords.lat, coords.lng, c.hq_lat, c.hq_lng) : null
+      const inRadius = dist !== null ? dist <= c.coverage_radius_km : false
+      return { courier: c, coversDistrict, inRadius, dist }
+    })
+
+    // Sort: explicit district coverage > radius coverage > nearest > priority
+    scored.sort((a, b) => {
+      if (a.coversDistrict !== b.coversDistrict) return a.coversDistrict ? -1 : 1
+      if (a.inRadius !== b.inRadius) return a.inRadius ? -1 : 1
+      if (a.dist !== null && b.dist !== null && Math.abs(a.dist - b.dist) > 5) return a.dist - b.dist
+      return a.courier.priority - b.courier.priority
+    })
+
+    const best = scored[0]?.courier
+    if (best) {
+      setRecommendedCourierId(best.id)
+      setForm((f) => ({ ...f, courier_id: best.id }))
+    }
+  }, [form.district, couriers])
 
   // GSAP entry animation
   useEffect(() => {
@@ -232,10 +207,6 @@ export function CheckoutSection() {
     setErrors(errs);
     if (Object.keys(errs).length) {
       setActiveStep(2);
-      return;
-    }
-    if (!captchaToken) {
-      addToast("error", "Please complete the CAPTCHA.");
       return;
     }
 
@@ -302,8 +273,6 @@ export function CheckoutSection() {
       );
     } finally {
       setSubmitting(false);
-      captchaRef.current?.resetCaptcha();
-      setCaptchaToken(null);
     }
   };
 
@@ -611,59 +580,6 @@ export function CheckoutSection() {
               {activeStep === 2 && (
                 <div className="px-5 pb-5 border-t border-outline-variant/10">
                   <div className="space-y-4 mt-4">
-                    {/* Phone OTP verification */}
-                    {!phoneVerified ? (
-                      <div className="bg-surface-container-low rounded-xl p-4 space-y-3 border border-outline-variant/20">
-                        <p className="text-xs font-bold text-on-surface font-label uppercase tracking-wider">Verify Phone Number</p>
-                        <div className="flex gap-2">
-                          <input
-                            type="tel"
-                            value={otpPhone}
-                            placeholder="98XXXXXXXX"
-                            maxLength={10}
-                            onChange={(e) => { setOtpPhone(e.target.value); setOtpSent(false); setOtpError("") }}
-                            className="flex-1 h-10 px-3 bg-surface-container-lowest border border-outline-variant/40 rounded-lg text-sm font-body focus:outline-none focus:border-primary transition-colors"
-                          />
-                          <button
-                            onClick={sendOtp}
-                            disabled={otpLoading || otpResendTimer > 0}
-                            className="px-4 h-10 bg-primary text-white text-xs font-label font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 shrink-0"
-                          >
-                            {otpLoading && !otpSent ? "Sending…" : otpResendTimer > 0 ? `Resend (${otpResendTimer}s)` : otpSent ? "Resend" : "Send OTP"}
-                          </button>
-                        </div>
-                        {otpSent && (
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={otpCode}
-                              placeholder="Enter 6-digit OTP"
-                              maxLength={6}
-                              inputMode="numeric"
-                              onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, "")); setOtpError("") }}
-                              className="flex-1 h-10 px-3 bg-surface-container-lowest border border-outline-variant/40 rounded-lg text-sm font-body focus:outline-none focus:border-primary transition-colors tracking-widest"
-                            />
-                            <button
-                              onClick={verifyOtp}
-                              disabled={otpLoading}
-                              className="px-4 h-10 bg-success text-white text-xs font-label font-semibold rounded-lg hover:bg-success/90 transition-colors disabled:opacity-50 shrink-0"
-                            >
-                              {otpLoading ? "Verifying…" : "Verify"}
-                            </button>
-                          </div>
-                        )}
-                        {otpError && <p className="text-xs text-error font-label">{otpError}</p>}
-                        {otpSent && !otpError && <p className="text-xs text-on-surface-variant font-body">OTP sent to {otpPhone}. Valid for 10 minutes.</p>}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 px-3 py-2 bg-success/10 border border-success/30 rounded-xl">
-                        <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                        <p className="text-xs font-semibold text-success font-label">Phone verified: {otpPhone}</p>
-                      </div>
-                    )}
-
-                    {/* Full Name + rest of form — only shown after phone verified */}
-                    {phoneVerified && (
                     <div className="space-y-4">
                     {/* Full Name */}
                     <div>
@@ -673,6 +589,7 @@ export function CheckoutSection() {
                       <input
                         type="text"
                         value={form.full_name ?? ""}
+                        placeholder="Your full name"
                         onChange={(e) =>
                           setForm((f) => ({ ...f, full_name: e.target.value }))
                         }
@@ -681,6 +598,28 @@ export function CheckoutSection() {
                       {errors.full_name && (
                         <p className="text-xs text-error mt-1 font-label">
                           {errors.full_name}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Phone */}
+                    <div>
+                      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5 font-label">
+                        Phone Number <span className="text-error">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={form.phone ?? ""}
+                        placeholder="98XXXXXXXX"
+                        maxLength={10}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, phone: e.target.value.replace(/\D/g, '') }))
+                        }
+                        className={`search-input w-full h-11 px-3 bg-surface-container-lowest border rounded-xl text-sm font-body transition-colors ${errors.phone ? "border-error" : "border-outline-variant/40 focus:border-primary"}`}
+                      />
+                      {errors.phone && (
+                        <p className="text-xs text-error mt-1 font-label">
+                          {errors.phone}
                         </p>
                       )}
                     </div>
@@ -700,30 +639,84 @@ export function CheckoutSection() {
                     {/* Courier selection */}
                     {couriers.length > 0 && (
                       <div>
-                        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 font-label">
-                          <Truck className="w-3.5 h-3.5 inline mr-1" />
-                          Select Courier
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-label">
+                            <Truck className="w-3.5 h-3.5 inline mr-1" />
+                            Select Courier
+                          </label>
+                          {form.district && DISTRICT_COORDS[form.district] && (
+                            <span className="text-[10px] text-on-surface-variant/60 font-label">
+                              Sorted by distance from {form.district}
+                            </span>
+                          )}
+                        </div>
                         <div className="space-y-2">
-                          {couriers.map((c) => (
-                            <label
-                              key={c.id}
-                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.courier_id === c.id ? "border-primary bg-primary/5" : "border-outline-variant/30 hover:border-outline-variant"}`}
-                            >
-                              <input
-                                type="radio"
-                                name="courier"
-                                value={c.id}
-                                checked={form.courier_id === c.id}
-                                onChange={() => setForm((f) => ({ ...f, courier_id: c.id }))}
-                                className="sr-only"
-                              />
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${form.courier_id === c.id ? "border-primary" : "border-outline-variant"}`}>
-                                {form.courier_id === c.id && <div className="w-2 h-2 rounded-full bg-primary" />}
-                              </div>
-                              <span className="text-sm font-semibold text-on-surface font-label">{c.name}</span>
-                            </label>
-                          ))}
+                          {(() => {
+                            const coords = form.district ? DISTRICT_COORDS[form.district] : null
+                            const withDist = couriers.map((c) => {
+                              const dist = coords
+                                ? haversineKm(coords.lat, coords.lng, c.hq_lat, c.hq_lng)
+                                : null
+                              const inCoverage = dist !== null ? dist <= c.coverage_radius_km : true
+                              return { courier: c, dist, inCoverage }
+                            })
+                            withDist.sort((a, b) => {
+                              const aCovers = a.courier.covered_districts?.includes(form.district ?? '') ?? false
+                              const bCovers = b.courier.covered_districts?.includes(form.district ?? '') ?? false
+                              if (aCovers !== bCovers) return aCovers ? -1 : 1
+                              if (a.inCoverage !== b.inCoverage) return a.inCoverage ? -1 : 1
+                              if (a.dist !== null && b.dist !== null && Math.abs(a.dist - b.dist) > 5) return a.dist - b.dist
+                              return a.courier.priority - b.courier.priority
+                            })
+                            return withDist.map(({ courier: c, dist, inCoverage }) => {
+                              const isRecommended = c.id === recommendedCourierId
+                              const coversDistrict = c.covered_districts?.includes(form.district ?? '') ?? false
+                              return (
+                                <label
+                                  key={c.id}
+                                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.courier_id === c.id ? "border-primary bg-primary/5" : "border-outline-variant/30 hover:border-outline-variant"}`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="courier"
+                                    value={c.id}
+                                    checked={form.courier_id === c.id}
+                                    onChange={() => setForm((f) => ({ ...f, courier_id: c.id }))}
+                                    className="sr-only"
+                                  />
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${form.courier_id === c.id ? "border-primary" : "border-outline-variant"}`}>
+                                    {form.courier_id === c.id && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="text-sm font-semibold text-on-surface font-label">{c.name}</span>
+                                      {isRecommended && (
+                                        <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold font-label rounded-full">
+                                          Recommended
+                                        </span>
+                                      )}
+                                      {coversDistrict && (
+                                        <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold font-label rounded-full">
+                                          Serves {form.district}
+                                        </span>
+                                      )}
+                                      {!coversDistrict && !inCoverage && dist !== null && (
+                                        <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold font-label rounded-full">
+                                          Limited Coverage
+                                        </span>
+                                      )}
+                                    </div>
+                                    {!coversDistrict && dist !== null && (
+                                      <p className="text-[11px] text-on-surface-variant font-label mt-0.5">
+                                        ~{Math.round(dist)} km from your district
+                                        {inCoverage ? " · In radius zone" : ""}
+                                      </p>
+                                    )}
+                                  </div>
+                                </label>
+                              )
+                            })
+                          })()}
                         </div>
                       </div>
                     )}
@@ -755,7 +748,6 @@ export function CheckoutSection() {
                       Continue to Payment <ChevronRight className="w-4 h-4" />
                     </button>
                     </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -841,17 +833,6 @@ export function CheckoutSection() {
                         className="search-input w-full px-3 py-2.5 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-sm font-body focus:border-primary transition-colors resize-none"
                       />
                     </div>
-
-                    {/* hCaptcha */}
-                    <HCaptcha
-                      ref={captchaRef}
-                      sitekey={
-                        process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ??
-                        "10000000-ffff-ffff-ffff-000000000001"
-                      }
-                      onVerify={setCaptchaToken}
-                      onExpire={() => setCaptchaToken(null)}
-                    />
 
                     {submitError && (
                       <div className="px-4 py-3 bg-error-container/30 border border-error/20 rounded-xl">

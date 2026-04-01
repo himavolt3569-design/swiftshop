@@ -4,6 +4,8 @@ export interface Category {
   slug: string
   sort_order: number
   is_active: boolean
+  parent_id?: string | null
+  subcategories?: Category[]
   product_count?: number
 }
 
@@ -150,6 +152,7 @@ export interface Courier {
   hq_lat: number
   hq_lng: number
   coverage_radius_km: number
+  covered_districts: string[] | null
   priority: number
   is_active: boolean
   created_at: string

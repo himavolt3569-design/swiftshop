@@ -17,8 +17,12 @@ create table if not exists categories (
   slug        text not null unique,
   sort_order  integer not null default 0,
   is_active   boolean not null default true,
+  parent_id   uuid references categories(id) on delete set null,
   created_at  timestamptz not null default now()
 );
+
+-- Migration: add parent_id to existing DB
+-- alter table categories add column if not exists parent_id uuid references categories(id) on delete set null;
 
 -- ============================================================
 -- PRODUCTS
@@ -82,10 +86,14 @@ create table if not exists couriers (
   hq_lat              double precision not null,
   hq_lng              double precision not null,
   coverage_radius_km  double precision not null default 30,
+  covered_districts   text[] default null,
   priority            integer not null default 1,
   is_active           boolean not null default true,
   created_at          timestamptz not null default now()
 );
+
+-- Migration: add covered_districts to existing DB
+-- alter table couriers add column if not exists covered_districts text[] default null;
 
 -- ============================================================
 -- ORDERS
@@ -96,9 +104,10 @@ create table if not exists orders (
   session_id       text,
   customer_name    text not null,
   customer_phone   text not null,
-  customer_email   text not null,
+  customer_email   text,
   province         text not null,
   district         text not null,
+  city             text,
   area             text not null,
   landmark         text,
   lat              double precision,

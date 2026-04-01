@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { ShoppingBag } from 'lucide-react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase }      from '@/lib/supabase'
 import { Product }       from '@/lib/types'
 import { ProductCard }         from './ProductCard'
@@ -13,6 +13,63 @@ interface ProductGridProps {
 }
 
 const PAGE_SIZE = 12
+
+function ProductScrollRow({ onSelect }: { onSelect: (p: Product) => void }) {
+  const [products, setProducts] = useState<Product[]>([])
+  const rowRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    supabase
+      .from('products')
+      .select('*, category:categories(id, name, slug), images, sizes')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(12)
+      .then(({ data }) => { if (data) setProducts(data as Product[]) })
+  }, [])
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (!rowRef.current) return
+    rowRef.current.scrollBy({ left: dir === 'right' ? 280 : -280, behavior: 'smooth' })
+  }
+
+  if (!products.length) return null
+
+  return (
+    <div className="mb-12">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-baseline gap-3">
+          <span className="text-[11px] uppercase tracking-[0.3em] text-on-surface-variant/60 font-label">New In</span>
+          <h3 className="font-headline text-xl font-bold text-on-surface">Latest Arrivals</h3>
+        </div>
+        <div className="flex gap-1">
+          <button
+            onClick={() => scroll('left')}
+            className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4 text-on-surface-variant" />
+          </button>
+          <button
+            onClick={() => scroll('right')}
+            className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors"
+          >
+            <ChevronRight className="w-4 h-4 text-on-surface-variant" />
+          </button>
+        </div>
+      </div>
+      <div
+        ref={rowRef}
+        className="flex gap-4 overflow-x-auto no-scrollbar pb-1"
+      >
+        {products.map((product) => (
+          <div key={product.id} className="w-[200px] shrink-0">
+            <ProductCard product={product} onClick={onSelect} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function ProductGrid({ activeCategoryId, highlightedProductId }: ProductGridProps) {
   const [products,  setProducts]  = useState<Product[]>([])
@@ -73,6 +130,9 @@ export function ProductGrid({ activeCategoryId, highlightedProductId }: ProductG
 
   return (
     <section id="products" className="py-16 px-6 md:px-8 max-w-screen-2xl mx-auto">
+      {/* Horizontal scroll row — always shows latest products */}
+      <ProductScrollRow onSelect={setSelected} />
+
       <div className="mb-10 flex items-baseline gap-3">
         <span className="text-[11px] uppercase tracking-[0.3em] text-on-surface-variant/60 font-label">Products</span>
         <h2 className="font-headline text-3xl font-bold text-on-surface">
