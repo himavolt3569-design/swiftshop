@@ -73,21 +73,37 @@ export default function AdminDashboardPage() {
     const today = new Date(); today.setHours(0, 0, 0, 0)
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
 
-    const [{ data: todayData }, { data: recentData }, { data: totalData }] = await Promise.all([
+    const [
+      { data: todayData,  error: e1 },
+      { data: recentData, error: e2 },
+      { data: totalData,  error: e3 },
+    ] = await Promise.all([
       supabase.from('orders').select('total, status').gte('created_at', today.toISOString()),
       supabase.from('orders').select('*, items:order_items(*)').order('created_at', { ascending: false }).limit(10),
       supabase.from('orders').select('total').gte('created_at', monthStart.toISOString()),
     ])
 
+    if (e1) console.error('[dashboard] todayData error:', e1)
+    if (e2) console.error('[dashboard] recentData error:', e2)
+    if (e3) console.error('[dashboard] totalData error:', e3)
+
+    // Fallback: derive month/today stats from recentData if date-filtered queries fail
+    const allOrders = (recentData as Order[]) ?? []
+    const todayIso = today.toISOString()
+    const monthIso = monthStart.toISOString()
+
+    const resolvedToday = todayData ?? allOrders.filter(o => o.created_at >= todayIso)
+    const resolvedMonth = totalData ?? allOrders.filter(o => o.created_at >= monthIso)
+
     setStats({
-      todayOrders:     todayData?.length ?? 0,
-      todayRevenue:    todayData?.reduce((s, o) => s + o.total, 0) ?? 0,
-      pendingDispatch: todayData?.filter((o) => o.status === 'confirmed').length ?? 0,
-      heldOrders:      (recentData as Order[])?.filter((o) => o.status === 'held').length ?? 0,
-      totalRevenue:    totalData?.reduce((s, o) => s + o.total, 0) ?? 0,
-      totalOrders:     totalData?.length ?? 0,
+      todayOrders:     resolvedToday.length,
+      todayRevenue:    resolvedToday.reduce((s, o) => s + o.total, 0),
+      pendingDispatch: resolvedToday.filter((o) => o.status === 'confirmed').length,
+      heldOrders:      allOrders.filter((o) => o.status === 'held').length,
+      totalRevenue:    resolvedMonth.reduce((s, o) => s + o.total, 0),
+      totalOrders:     resolvedMonth.length,
     })
-    setOrders((recentData as Order[]) ?? [])
+    setOrders(allOrders)
     setLoading(false)
   }
 
