@@ -652,7 +652,7 @@ export function CheckoutSection() {
                         </div>
                         <div className="space-y-2">
                           {(() => {
-                            const coords = form.district ? DISTRICT_COORDS[form.district] : null
+                            const coords = form.district ? DISTRICT_COORDS[form.district as string] : null
                             const withDist = couriers.map((c) => {
                               const dist = coords
                                 ? haversineKm(coords.lat, coords.lng, c.hq_lat, c.hq_lng)
