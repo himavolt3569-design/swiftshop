@@ -31,12 +31,12 @@ export function AdminDrawer({ open, onClose, title, children, width = 'w-[520px]
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed top-0 right-0 bottom-0 z-[90] w-full sm:${width} sm:max-w-[95vw] bg-admin shadow-[-24px_0_48px_rgba(30,27,24,0.10)] animate-slide-in-right flex flex-col`}
+        className={`fixed top-0 right-0 bottom-0 z-[90] w-full sm:${width} sm:max-w-[95vw] bg-admin shadow-[-32px_0_64px_rgba(30,27,24,0.08)] animate-slide-in-right flex flex-col`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/20 bg-surface-container-lowest">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/15 bg-surface-container-lowest">
           <h3 className="font-headline text-lg font-bold text-on-surface">{title}</h3>
-          <button onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container transition-colors">
-            <X className="w-4 h-4 text-on-surface" />
+          <button onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-surface-container transition-all duration-150 active:scale-[0.93]">
+            <X className="w-4 h-4 text-on-surface-variant" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-6">

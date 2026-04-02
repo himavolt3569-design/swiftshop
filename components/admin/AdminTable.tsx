@@ -43,14 +43,14 @@ export function AdminTable<T extends Record<string, unknown>>({
   })
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-outline-variant/20">
+    <div className="overflow-x-auto rounded-2xl border border-outline-variant/20 shadow-sm">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-surface-container border-b border-outline-variant/20">
+          <tr className="bg-surface-container/60 border-b border-outline-variant/15">
             {columns.map((col) => (
               <th
                 key={String(col.key)}
-                className={`px-3 sm:px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label ${col.sortable ? 'cursor-pointer hover:text-on-surface select-none' : ''} ${col.width ?? ''} ${col.mobileHide ? 'hidden sm:table-cell' : ''}`}
+                className={`px-3 sm:px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70 font-label transition-colors duration-150 ${col.sortable ? 'cursor-pointer hover:text-on-surface select-none' : ''} ${col.width ?? ''} ${col.mobileHide ? 'hidden sm:table-cell' : ''}`}
                 onClick={() => col.sortable && handleSort(String(col.key))}
               >
                 <div className="flex items-center gap-1">
@@ -87,7 +87,7 @@ export function AdminTable<T extends Record<string, unknown>>({
           {!loading && sorted.map((row) => (
             <tr
               key={String(row[keyField])}
-              className={`border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors ${onRowClick ? 'cursor-pointer active:bg-surface-container' : ''}`}
+              className={`border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/70 transition-colors duration-150 ${onRowClick ? 'cursor-pointer active:bg-surface-container' : ''}`}
               onClick={() => onRowClick?.(row)}
             >
               {columns.map((col) => (

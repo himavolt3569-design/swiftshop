@@ -29,7 +29,7 @@ export function AdminLogin({ onAuth }: Props) {
 
   return (
     <div className="min-h-screen bg-admin flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lift p-10">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lift p-10 border border-black/[0.05]">
         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-8 mx-auto">
           <Lock className="w-5 h-5 text-primary" strokeWidth={1.5} />
         </div>
@@ -64,7 +64,7 @@ export function AdminLogin({ onAuth }: Props) {
             <p className="text-error text-sm font-body">Invalid credentials. Please try again.</p>
           )}
 
-          <button type="submit" className="admin-btn-primary w-full mt-2">
+          <button type="submit" className="admin-btn-primary w-full mt-2 justify-center flex items-center h-11">
             Sign In
           </button>
         </form>

@@ -24,11 +24,20 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in   { animation: fade-in 0.2s ease both; }
-.animate-slide-up  { animation: slide-up 0.3s cubic-bezier(0.34,1.1,0.64,1) both; }
-.animate-sheet-up  { animation: slide-up-sheet 0.35s cubic-bezier(0.32,0.72,0,1) both; }
+.animate-fade-in   { animation: fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-slide-up  { animation: slide-up 0.35s cubic-bezier(0.34, 1.06, 0.64, 1) both; }
+.animate-sheet-up  { animation: slide-up-sheet 0.4s cubic-bezier(0.32, 0.72, 0, 1) both; }
 
 @layer base {
+  *, *::before, *::after {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background-color: rgba(148, 46, 2, 0.12);
+    color: inherit;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -41,20 +50,24 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Smooth scrollbar (webkit) */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(30, 27, 24, 0.15); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(30, 27, 24, 0.28); }
+
   button:disabled, input:disabled, select:disabled, textarea:disabled {
     cursor: not-allowed;
   }
 
-  /* Global focus ring — excludes inputs that live inside a styled wrapper
-     (they receive focus feedback from the wrapper's focus-within ring instead) */
+  /* Global focus ring */
   button:focus-visible, a:focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-primary;
+    @apply outline outline-2 outline-offset-2 outline-primary/60;
   }
-  /* Standalone inputs / selects / textareas still get a focus ring */
   input:not(.auth-input):not(.search-input):focus-visible,
   select:focus-visible,
   textarea:focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-primary;
+    @apply outline outline-2 outline-offset-2 outline-primary/60;
   }
 }
 
@@ -66,7 +79,12 @@
 
   /* Focus rings – always accent color */
   .focus-ring:focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-primary;
+    @apply outline outline-2 outline-offset-2 outline-primary/60;
+  }
+
+  /* Smooth interactive baseline */
+  .interactive {
+    @apply transition-all duration-200 ease-out active:scale-[0.97];
   }
 }
 
@@ -80,15 +98,15 @@
     outline: none !important;
   }
   .admin-input {
-    @apply w-full h-11 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm font-body text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary transition-colors;
+    @apply w-full h-11 px-3.5 bg-surface-container-lowest border border-outline-variant/60 rounded-xl text-sm font-body text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all duration-150;
   }
   .admin-label {
-    @apply block text-[13px] font-medium text-on-surface mb-1.5 font-label;
+    @apply block text-[12px] font-semibold text-on-surface-variant/70 uppercase tracking-wider mb-1.5 font-label;
   }
   .admin-btn-primary {
-    @apply px-5 py-2.5 bg-primary text-white text-sm font-label font-semibold rounded-lg hover:bg-primary-container transition-all active:scale-95;
+    @apply px-5 py-2.5 bg-primary text-white text-sm font-label font-semibold rounded-xl hover:bg-primary/90 transition-all duration-150 active:scale-[0.97] shadow-sm shadow-primary/20;
   }
   .admin-btn-secondary {
-    @apply px-5 py-2.5 border border-outline-variant text-on-surface text-sm font-label font-medium rounded-lg hover:bg-surface-container transition-all;
+    @apply px-5 py-2.5 border border-outline-variant/60 text-on-surface text-sm font-label font-medium rounded-xl hover:bg-surface-container hover:border-outline-variant transition-all duration-150 active:scale-[0.97];
   }
 }

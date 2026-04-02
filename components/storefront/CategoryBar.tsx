@@ -71,10 +71,10 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
 
           <button
             onClick={() => select(null, null)}
-            className={`px-5 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-150 ${
+            className={`px-5 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${
               active === null
-                ? 'bg-primary text-white scale-105'
-                : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                ? 'bg-primary text-white shadow-sm shadow-primary/30'
+                : 'bg-surface-container text-on-surface hover:bg-surface-container-high hover:text-on-surface'
             }`}
           >
             All
@@ -84,10 +84,10 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
             <button
               key={cat.id}
               onClick={() => select(cat.id, cat.id)}
-              className={`px-5 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-150 ${
+              className={`px-5 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${
                 activeMain === cat.id || active === cat.id
-                  ? 'bg-primary text-white scale-105'
-                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                  ? 'bg-primary text-white shadow-sm shadow-primary/30'
+                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high hover:text-on-surface'
               }`}
             >
               {cat.name}
@@ -102,9 +102,9 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
           <div className="max-w-screen-2xl mx-auto flex gap-2 pt-2">
             <button
               onClick={() => select(activeMain, activeMain)}
-              className={`px-4 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-150 ${
+              className={`px-4 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-200 ${
                 active === activeMain
-                  ? 'bg-on-surface text-background'
+                  ? 'bg-on-surface text-background shadow-sm'
                   : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
               }`}
             >
@@ -114,9 +114,9 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
               <button
                 key={sub.id}
                 onClick={() => select(sub.id, activeMain)}
-                className={`px-4 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-150 ${
+                className={`px-4 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-200 ${
                   active === sub.id
-                    ? 'bg-on-surface text-background'
+                    ? 'bg-on-surface text-background shadow-sm'
                     : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
                 }`}
               >

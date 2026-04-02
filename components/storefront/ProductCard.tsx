@@ -55,7 +55,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   return (
     <div className="group cursor-pointer" onClick={() => onClick(product)}>
       {/* Image container */}
-      <div className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden relative transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-xl">
+      <div className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden relative transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-lg group-hover:border-outline-variant/10">
         {/* Badges */}
         <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
           {product.stock <= 0 ? (
@@ -73,7 +73,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <button
           onClick={toggleWish}
           aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
-          className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all hover:scale-110 active:scale-95"
+          className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/85 backdrop-blur-md rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all duration-200 hover:scale-105 active:scale-95"
         >
           <Heart className={`w-4 h-4 transition-all ${isWished ? 'fill-red-500 text-red-500' : 'text-on-surface-variant'}`} />
         </button>
@@ -94,11 +94,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         )}
 
         {/* Quick add — slides up on hover */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]">
           <button
             onClick={handleAddToCart}
             disabled={defaultStock <= 0}
-            className="w-full py-3 bg-primary/95 backdrop-blur-sm text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-primary/90 backdrop-blur-sm text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             {defaultStock <= 0 ? 'Out of Stock' : 'Quick Add'}

@@ -34,18 +34,18 @@ export function AdminHeader({ onMenuOpen }: AdminHeaderProps) {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 lg:left-60 h-14 bg-white/90 backdrop-blur-xl border-b border-black/[0.07] z-40 flex items-center px-4 lg:px-6 gap-3">
+    <header className="fixed top-0 left-0 right-0 lg:left-60 h-14 bg-[#F4F2EF]/95 backdrop-blur-xl border-b border-black/[0.07] z-40 flex items-center px-4 lg:px-6 gap-3">
       {/* Hamburger — mobile only */}
       <button
         onClick={onMenuOpen}
-        className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/[0.05] text-[#1A1714]/50 shrink-0"
+        className="lg:hidden w-8 h-8 flex items-center justify-center rounded-xl hover:bg-black/[0.05] text-[#1A1714]/50 transition-all duration-150 active:scale-[0.93] shrink-0"
         aria-label="Open menu"
       >
         <Menu className="w-5 h-5" />
       </button>
 
       {/* Search */}
-      <div className="flex items-center gap-2.5 bg-black/[0.04] border border-black/[0.07] rounded-xl px-3.5 py-2 flex-1 max-w-xs group focus-within:border-primary/40 transition-all">
+      <div className="flex items-center gap-2.5 bg-black/[0.03] border border-black/[0.06] rounded-xl px-3.5 py-2 flex-1 max-w-xs group focus-within:border-primary/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/8 transition-all duration-150">
         <Search className="w-3.5 h-3.5 text-[#1A1714]/30 shrink-0" />
         <input
           type="text"
@@ -72,7 +72,7 @@ export function AdminHeader({ onMenuOpen }: AdminHeaderProps) {
 
         <div className="hidden sm:block w-px h-4 bg-black/10" />
 
-        <button className="relative w-8 h-8 rounded-xl flex items-center justify-center text-[#1A1714]/30 hover:text-[#1A1714]/70 hover:bg-black/[0.04] transition-all">
+        <button className="relative w-8 h-8 rounded-xl flex items-center justify-center text-[#1A1714]/30 hover:text-[#1A1714]/70 hover:bg-black/[0.05] transition-all duration-150 active:scale-[0.93]">
           <Bell className="w-4 h-4" />
           <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary" />
         </button>

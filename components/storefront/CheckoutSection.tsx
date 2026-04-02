@@ -644,7 +644,7 @@ export function CheckoutSection() {
                             <Truck className="w-3.5 h-3.5 inline mr-1" />
                             Select Courier
                           </label>
-                          {form.district && DISTRICT_COORDS[form.district] && (
+                          {form.district && DISTRICT_COORDS[form.district as string] && (
                             <span className="text-[10px] text-on-surface-variant/60 font-label">
                               Sorted by distance from {form.district}
                             </span>

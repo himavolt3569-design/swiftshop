@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Truck,
-  Ticket, BarChart2, Settings, LogOut, Zap, Share2, X
+  Ticket, BarChart2, Settings, LogOut, Zap, Share2, X,
 } from 'lucide-react'
 
 const NAV = [
@@ -42,30 +42,38 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
   }
 
   const sidebarContent = (
-    <div className="h-full flex flex-col">
-      <div className="px-5 pt-6 pb-5 border-b border-black/[0.06] flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
+    <div className="h-full flex flex-col bg-[#0F0F0F]">
+
+      {/* Logo */}
+      <div className="px-5 pt-6 pb-5 flex items-center justify-between border-b border-white/[0.06]">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/30">
             <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-[13px] font-bold text-[#1A1714] tracking-tight font-label">Swift Shop</h1>
-            <p className="text-[10px] text-[#1A1714]/40 font-label tracking-wider">ADMIN PANEL</p>
+            <h1 className="text-[13px] font-bold text-white tracking-tight font-label">Swift Shop</h1>
+            <p className="text-[10px] text-white/30 font-label tracking-[0.15em] uppercase">Admin</p>
           </div>
         </div>
         {onMobileClose && (
-          <button onClick={onMobileClose} className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/[0.05] text-[#1A1714]/40">
+          <button
+            onClick={onMobileClose}
+            className="lg:hidden w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+          >
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
+      {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5 no-scrollbar">
         {GROUPS.map(({ key, label }) => {
           const items = NAV.filter((n) => n.group === key)
           return (
             <div key={key}>
-              <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#1A1714]/30 font-label px-3 mb-1.5">{label}</p>
+              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-white/20 font-label px-3 mb-2">
+                {label}
+              </p>
               <div className="space-y-0.5">
                 {items.map(({ href, label: lbl, icon: Icon, badge }) => {
                   const active = pathname === href || (href !== '/admin' && pathname.startsWith(href))
@@ -74,18 +82,28 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
                       key={href}
                       href={href}
                       onClick={onMobileClose}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
+                      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ease-out group ${
                         active
-                          ? 'bg-primary/8 text-primary'
-                          : 'text-[#1A1714]/50 hover:text-[#1A1714]/80 hover:bg-black/[0.04]'
+                          ? 'bg-white/[0.10] text-white'
+                          : 'text-white/40 hover:text-white/75 hover:bg-white/[0.05]'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-primary' : 'text-[#1A1714]/30 group-hover:text-[#1A1714]/60'}`} strokeWidth={active ? 2.5 : 1.8} />
+                      {/* Active left bar */}
+                      {active && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                      )}
+                      <Icon
+                        className={`w-4 h-4 shrink-0 transition-colors duration-200 ${
+                          active ? 'text-white' : 'text-white/25 group-hover:text-white/60'
+                        }`}
+                        strokeWidth={active ? 2.2 : 1.7}
+                      />
                       <span className="flex-1 font-label">{lbl}</span>
                       {badge && (
-                        <span className="text-[9px] bg-primary/90 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">{badge}</span>
+                        <span className="text-[9px] bg-primary text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide shadow-sm shadow-primary/40">
+                          {badge}
+                        </span>
                       )}
-                      {active && <div className="w-1 h-1 rounded-full bg-primary" />}
                     </Link>
                   )
                 })}
@@ -95,12 +113,13 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
         })}
       </nav>
 
-      <div className="px-3 py-4 border-t border-black/[0.06]">
+      {/* Sign out */}
+      <div className="px-3 py-4 border-t border-white/[0.06]">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#1A1714]/40 hover:text-red-500 hover:bg-red-50 transition-all font-label"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-white/30 hover:text-red-400 hover:bg-red-500/[0.08] transition-all duration-200 font-label active:scale-[0.98] group"
         >
-          <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.8} />
+          <LogOut className="w-4 h-4 shrink-0 group-hover:text-red-400 transition-colors duration-200" strokeWidth={1.7} />
           Sign Out
         </button>
       </div>
@@ -109,15 +128,17 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
 
   return (
     <>
-      <aside className="hidden lg:flex h-screen w-60 fixed left-0 top-0 bg-white flex-col z-50 border-r border-black/[0.07]">
+      {/* Desktop */}
+      <aside className="hidden lg:flex h-screen w-60 fixed left-0 top-0 flex-col z-50 border-r border-white/[0.05]">
         {sidebarContent}
       </aside>
 
+      {/* Mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>
             <motion.div
-              className="lg:hidden fixed inset-0 z-[80] bg-black/30 backdrop-blur-sm"
+              className="lg:hidden fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -125,7 +146,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
               onClick={onMobileClose}
             />
             <motion.aside
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 max-w-[85vw] bg-white z-[90] shadow-2xl"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 max-w-[85vw] z-[90] shadow-2xl"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}

@@ -70,7 +70,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
 
   return (
     <>
-      <nav className={`fixed top-0 w-full z-50 bg-background/90 backdrop-blur-xl border-b transition-all duration-300 ${scrolled ? 'border-outline-variant/30 shadow-ambient' : 'border-transparent'} h-16`}>
+      <nav className={`fixed top-0 w-full z-50 bg-background/92 backdrop-blur-xl border-b transition-all duration-300 ${scrolled ? 'border-outline-variant/20 shadow-ambient' : 'border-transparent'} h-16`}>
         <div className="flex items-center justify-between px-5 md:px-10 h-full max-w-screen-2xl mx-auto gap-4">
 
           {/* Logo */}
@@ -122,7 +122,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-background border border-outline-variant/30 rounded-xl shadow-lift overflow-hidden animate-slide-up z-50">
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-background/98 backdrop-blur-xl border border-outline-variant/20 rounded-2xl shadow-lift overflow-hidden animate-slide-up z-50">
                       {/* User info */}
                       <div className="px-4 py-3 border-b border-outline-variant/20">
                         <p className="text-xs text-on-surface-variant font-label">Signed in as</p>
@@ -151,13 +151,13 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setAuthOpen(true)}
-                    className="text-on-surface-variant hover:text-on-surface text-sm font-label font-medium px-3 py-1.5 rounded-lg hover:bg-surface-container transition-all duration-200"
+                    className="text-on-surface-variant hover:text-on-surface text-sm font-label font-medium px-3 py-1.5 rounded-xl hover:bg-surface-container transition-all duration-200 active:scale-[0.97]"
                   >
                     Log in
                   </button>
                   <button
                     onClick={() => setAuthOpen(true)}
-                    className="bg-primary hover:bg-primary-container text-white text-sm font-label font-semibold px-4 py-1.5 rounded-lg transition-all duration-200 shadow-sm shadow-primary/20 active:scale-[0.97]"
+                    className="bg-primary hover:bg-primary/90 text-white text-sm font-label font-semibold px-4 py-1.5 rounded-xl transition-all duration-200 shadow-sm shadow-primary/25 active:scale-[0.97]"
                   >
                     Sign up
                   </button>
@@ -219,7 +219,7 @@ function IconButton({
     <button
       onClick={onClick}
       aria-label={label}
-      className={`relative p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all duration-200 ${className}`}
+      className={`relative p-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all duration-200 active:scale-[0.93] ${className}`}
     >
       {children}
     </button>
@@ -250,7 +250,7 @@ function DropdownItem({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-label font-medium transition-colors ${
+      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-label font-medium transition-all duration-150 active:scale-[0.98] ${
         danger
           ? 'text-error hover:bg-error-container/20'
           : 'text-on-surface hover:bg-surface-container'
