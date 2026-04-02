@@ -302,7 +302,7 @@ export function CheckoutSection() {
             Order Confirmed!
           </h2>
           <p className="text-on-surface-variant font-body mb-2">
-            Thank you for shopping with Swift Shop. Your order number is:
+            Thank you for shopping with Goreto.store. Your order number is:
           </p>
           <div className="inline-block bg-primary/5 border border-primary/20 rounded-2xl px-8 py-4 mb-8">
             <p className="text-4xl font-headline font-bold text-primary tracking-wider">

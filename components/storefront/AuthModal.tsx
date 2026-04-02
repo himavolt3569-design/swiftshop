@@ -106,7 +106,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
                 {mode === 'forgot' && 'Reset password'}
               </h2>
               <p className="text-on-surface-variant text-sm mt-1 font-body">
-                {mode === 'login' && 'Sign in to your Swift Shop account'}
+                {mode === 'login' && 'Sign in to your Goreto.store account'}
                 {mode === 'signup' && 'Join thousands of happy customers'}
                 {mode === 'forgot' && "We'll send a reset link to your email"}
               </p>

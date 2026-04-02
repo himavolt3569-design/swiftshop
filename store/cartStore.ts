@@ -95,7 +95,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'swiftshop-cart',
+      name: 'goreto-cart',
       skipHydration: true,
     }
   )

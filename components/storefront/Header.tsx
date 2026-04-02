@@ -75,7 +75,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
 
           {/* Logo */}
           <a href="/" className="font-headline font-black italic text-xl text-on-surface tracking-tighter shrink-0 hover:text-primary transition-colors duration-200">
-            Swift Shop
+            Goreto.store
           </a>
 
           {/* Desktop search — centered, command-palette style */}

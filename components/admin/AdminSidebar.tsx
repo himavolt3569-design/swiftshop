@@ -51,7 +51,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
             <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-[13px] font-bold text-white tracking-tight font-label">Swift Shop</h1>
+            <h1 className="text-[13px] font-bold text-white tracking-tight font-label">Goreto.store</h1>
             <p className="text-[10px] text-white/30 font-label tracking-[0.15em] uppercase">Admin</p>
           </div>
         </div>

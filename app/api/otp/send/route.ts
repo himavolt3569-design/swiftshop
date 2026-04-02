@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         token,
         identity,
         to: phone,
-        text: `Your SwiftShop OTP is: ${code}. Valid for 10 minutes. Do not share this code.`,
+        text: `Your Goreto.store OTP is: ${code}. Valid for 10 minutes. Do not share this code.`,
       }),
     })
 

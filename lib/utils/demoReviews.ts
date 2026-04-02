@@ -13,7 +13,7 @@ const NEPALI_NAMES = [
 
 const REVIEW_TEXTS: Record<1 | 2 | 3 | 4 | 5, string[]> = {
   5: [
-    "Ekdam ramro product! Dhanyabad SwiftShop lai. Very happy with this purchase.",
+    "Ekdam ramro product! Dhanyabad Goreto.store lai. Very happy with this purchase.",
     "Quality is outstanding. Came exactly as shown in the picture. Will order again!",
     "Ati ramro cha. My friends also liked it very much. Highly recommended!",
     "Super fast delivery and the product quality is top notch. 100% satisfied.",

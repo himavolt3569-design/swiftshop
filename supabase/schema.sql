@@ -1,5 +1,5 @@
 -- ============================================================
--- Swift Shop – Supabase Database Schema
+-- Goreto.store – Supabase Database Schema
 -- Run this in the Supabase SQL editor to bootstrap the database
 -- ============================================================
 
@@ -175,7 +175,7 @@ create table if not exists promo_codes (
 -- ============================================================
 create table if not exists shop_settings (
   id                 uuid primary key default uuid_generate_v4(),
-  shop_name          text not null default 'Swift Shop',
+  shop_name          text not null default 'Goreto.store',
   shop_tagline       text not null default 'Curated essentials, delivered fast.',
   logo_url           text,
   contact_email      text not null default '',
@@ -185,7 +185,7 @@ create table if not exists shop_settings (
   tiktok_url         text,
   live_feed_enabled  boolean not null default true
 );
-insert into shop_settings (shop_name) values ('Swift Shop') on conflict do nothing;
+insert into shop_settings (shop_name) values ('Goreto.store') on conflict do nothing;
 
 -- ============================================================
 -- LIVE ORDERS FEED VIEW (no personal data exposed)

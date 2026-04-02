@@ -41,7 +41,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
           {/* Brand */}
           <div>
-            <h3 className="font-headline font-black italic text-[22px] text-white mb-3 tracking-tighter">Swift Shop</h3>
+            <h3 className="font-headline font-black italic text-[22px] text-white mb-3 tracking-tighter">Goreto.store</h3>
             <p className="text-[13px] text-white/60 font-body leading-relaxed max-w-[240px]">
               Curated essentials from the finest artisans across Nepal. Fast delivery, real tracking.
             </p>
@@ -101,7 +101,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-white/5 pt-5 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-[11px] text-white/40 font-body">&copy; {year} Swift Shop. All rights reserved.</p>
+          <p className="text-[11px] text-white/40 font-body">&copy; {year} Goreto.store. All rights reserved.</p>
           <p className="text-[11px] text-white/40 font-body">Built with care in Nepal</p>
         </div>
       </div>

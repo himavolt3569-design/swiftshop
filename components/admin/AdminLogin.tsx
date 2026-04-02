@@ -34,7 +34,7 @@ export function AdminLogin({ onAuth }: Props) {
           <Lock className="w-5 h-5 text-primary" strokeWidth={1.5} />
         </div>
         <h1 className="font-headline text-2xl font-bold text-on-surface text-center mb-1">Admin Access</h1>
-        <p className="text-on-surface-variant text-sm text-center mb-8 font-body">SwiftShop control panel</p>
+        <p className="text-on-surface-variant text-sm text-center mb-8 font-body">Goreto.store control panel</p>
 
         <form onSubmit={submit} className="space-y-4">
           <div>

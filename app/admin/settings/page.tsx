@@ -130,7 +130,7 @@ export default function SettingsPage() {
         {/* Store Identity */}
         <Section title="Store Identity" description="Brand name, tagline and logo" icon={<Store className="w-4 h-4" />}>
           <Field label="Shop Name">
-            <input className={inp} value={settings.shop_name ?? ''} onChange={(e) => update('shop_name', e.target.value)} placeholder="Swift Shop" />
+            <input className={inp} value={settings.shop_name ?? ''} onChange={(e) => update('shop_name', e.target.value)} placeholder="Goreto.store" />
           </Field>
           <Field label="Tagline">
             <input className={inp} value={settings.shop_tagline ?? ''} onChange={(e) => update('shop_tagline', e.target.value)} placeholder="Curated essentials, delivered fast" />
@@ -156,7 +156,7 @@ export default function SettingsPage() {
         <Section title="Contact Details" description="Visible to customers and used for notifications" icon={<Globe className="w-4 h-4" />}>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Contact Email">
-              <input type="email" className={inp} value={settings.contact_email ?? ''} onChange={(e) => update('contact_email', e.target.value)} placeholder="hello@swiftshop.com" />
+              <input type="email" className={inp} value={settings.contact_email ?? ''} onChange={(e) => update('contact_email', e.target.value)} placeholder="hello@goreto.store" />
             </Field>
             <Field label="Contact Phone">
               <input type="tel" className={inp} value={settings.contact_phone ?? ''} onChange={(e) => update('contact_phone', e.target.value)} placeholder="98XXXXXXXX" />

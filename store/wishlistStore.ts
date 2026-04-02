@@ -58,7 +58,7 @@ export const useWishlistStore = create<WishlistState>()(
       },
     }),
     {
-      name: "swiftshop-wishlist",
+      name: "goreto-wishlist",
       skipHydration: true,
     },
   ),

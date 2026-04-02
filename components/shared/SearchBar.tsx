@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Product } from '@/lib/types'
 
-const RECENT_KEY = 'swiftshop-recent-searches'
+const RECENT_KEY = 'goreto-recent-searches'
 const MAX_RECENT = 5
 
 interface SearchBarProps {

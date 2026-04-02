@@ -77,7 +77,7 @@ function ConvertModal({ order, onClose, onConverted }: {
       const { data, error } = await supabase.from('orders').insert({
         customer_name:  form.customer_name,
         customer_phone: form.customer_phone,
-        customer_email: form.customer_email || `social-${order.id}@swiftshop.local`,
+        customer_email: form.customer_email || `social-${order.id}@goreto.store`,
         province:       form.province,
         district:       form.district,
         area:           form.area,
@@ -217,7 +217,7 @@ function AddChannelModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
           </div>
           <div>
             <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1714]/35 font-label mb-2 block">Channel Name</label>
-            <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Swift Shop Facebook Page" className={inp} />
+            <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Goreto.store Facebook Page" className={inp} />
           </div>
           <div>
             <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1714]/35 font-label mb-2 block">Page URL (optional)</label>

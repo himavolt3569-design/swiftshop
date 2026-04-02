@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       return_url,
-      website_url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://swiftshop.com',
+      website_url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://goreto.store',
       amount,
       purchase_order_id: order_number,
-      purchase_order_name: `SwiftShop Order ${order_number}`,
+      purchase_order_name: `Goreto.store Order ${order_number}`,
       customer_info: {
         name: customer_name,
         email: customer_email,

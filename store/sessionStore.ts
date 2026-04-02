@@ -29,7 +29,7 @@ export const useSessionStore = create<SessionState>()(
         set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
     }),
     {
-      name: 'swiftshop-session',
+      name: 'goreto-session',
       partialize: (state) => ({ sessionId: state.sessionId }),
     }
   )

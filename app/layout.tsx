@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Swift Shop - Curated Essentials",
+  title: "Goreto.store - Curated Essentials",
   description:
     "A refined online market for curated essentials. Fast delivery across Nepal.",
 };
