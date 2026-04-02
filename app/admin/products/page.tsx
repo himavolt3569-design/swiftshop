@@ -107,9 +107,11 @@ export default function ProductsPage() {
   const [form,       setForm]       = useState(EMPTY_FORM)
   const [saving,     setSaving]     = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [imageFiles,  setImageFiles] = useState<File[]>([])
+  const [imageFiles,    setImageFiles]    = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [keptImages,    setKeptImages]    = useState<{ url: string }[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
+  const MAX_IMAGES = 5
   const { addToast } = useSessionStore()
 
   const fetchAll = useCallback(async () => {
@@ -124,7 +126,7 @@ export default function ProductsPage() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   const openNew = () => {
-    setEditing(null); setForm(EMPTY_FORM); setImageFiles([]); setImagePreviews([]); setDrawerOpen(true)
+    setEditing(null); setForm(EMPTY_FORM); setImageFiles([]); setImagePreviews([]); setKeptImages([]); setDrawerOpen(true)
   }
   const openEdit = (p: ProductRow) => {
     const prod = p as unknown as Product
@@ -133,19 +135,27 @@ export default function ProductsPage() {
     const sizeStocks: Record<string, string> = {}
     if (hasSizes) { (prod.sizes ?? []).forEach((s) => { sizeStocks[s.size] = String(s.stock) }) }
     setForm({ name: prod.name, description: prod.description, price: String(prod.price), sale_price: String(prod.sale_price ?? ''), stock: String(prod.stock), category_id: prod.category_id, sizeStocks, hasSizes, is_active: prod.is_active })
-    setImageFiles([]); setImagePreviews([]); setDrawerOpen(true)
+    setImageFiles([]); setImagePreviews([])
+    setKeptImages((prod.images ?? []).map((img) => ({ url: img.url })))
+    setDrawerOpen(true)
   }
 
   const handleFileChange = (files: FileList | null) => {
     if (!files) return
-    const arr = Array.from(files)
-    setImageFiles(arr)
-    setImagePreviews(arr.map((f) => URL.createObjectURL(f)))
+    const remaining = MAX_IMAGES - keptImages.length - imageFiles.length
+    if (remaining <= 0) return
+    const arr = Array.from(files).slice(0, remaining)
+    setImageFiles((prev) => [...prev, ...arr])
+    setImagePreviews((prev) => [...prev, ...arr.map((f) => URL.createObjectURL(f))])
   }
 
-  const removePreview = (i: number) => {
+  const removeNewImage = (i: number) => {
     setImageFiles((prev) => prev.filter((_, idx) => idx !== i))
     setImagePreviews((prev) => prev.filter((_, idx) => idx !== i))
+  }
+
+  const removeKeptImage = (i: number) => {
+    setKeptImages((prev) => prev.filter((_, idx) => idx !== i))
   }
 
   const uploadImages = async (): Promise<string[]> => {
@@ -172,12 +182,16 @@ export default function ProductsPage() {
       ? sizes.reduce((acc: number, s: { size: string; stock: number }) => acc + s.stock, 0)
       : parseInt(form.stock || '0')
     const slug = form.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Date.now()
+    const combinedImages = [
+      ...keptImages.map((img, i) => ({ url: img.url, sort_order: i })),
+      ...imageUrls.map((url, i) => ({ url, sort_order: keptImages.length + i })),
+    ]
     const payload = {
       name: form.name, description: form.description, price: parseFloat(form.price),
       sale_price: form.sale_price ? parseFloat(form.sale_price) : null,
       stock: totalStock, category_id: form.category_id || null,
       sizes, is_active: form.is_active,
-      ...(imageUrls.length ? { images: imageUrls.map((url, i) => ({ url, sort_order: i })) } : {}),
+      images: combinedImages,
     }
     if (editing) {
       const { error } = await supabase.from('products').update(payload).eq('id', editing.id)
@@ -226,19 +240,6 @@ export default function ProductsPage() {
       <AdminDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={editing ? 'Edit Product' : 'Add Product'} width="w-[600px]">
         <div className="space-y-4 pb-2">
 
-          {/* ── Existing images strip (edit mode) ── */}
-          {editing && (editing as unknown as Product).images?.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {(editing as unknown as Product).images.map((img, i) => (
-                <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-outline-variant/40 shrink-0">
-                  <Image src={img.url} alt="" fill className="object-cover" />
-                </div>
-              ))}
-              <div className="w-16 h-16 rounded-xl border-2 border-dashed border-outline-variant/50 flex items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors" onClick={() => fileRef.current?.click()}>
-                <Plus className="w-4 h-4 text-on-surface-variant/50" />
-              </div>
-            </div>
-          )}
 
           {/* ── 1. Basic Info ── */}
           <SectionCard icon={Tag} title="Basic Information">
@@ -375,38 +376,61 @@ export default function ProductsPage() {
           </SectionCard>
 
           {/* ── 4. Images ── */}
-          <SectionCard icon={ImageIcon} title="Product Images">
-            <div
-              className="border-2 border-dashed border-outline-variant rounded-2xl p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/3 transition-all group"
-              onClick={() => fileRef.current?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => { e.preventDefault(); handleFileChange(e.dataTransfer.files) }}
-            >
-              <div className="w-12 h-12 rounded-2xl bg-surface-container mx-auto mb-3 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                <Upload className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
-              </div>
-              <p className="text-sm font-semibold text-on-surface font-label mb-1">Click to upload or drag & drop</p>
-              <p className="text-xs text-on-surface-variant/60 font-label">PNG, JPG, WebP · up to 10 MB each</p>
-              <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files)} />
+          <SectionCard icon={ImageIcon} title={`Product Images (${keptImages.length + imagePreviews.length} / ${MAX_IMAGES})`}>
+            {/* Image grid — existing kept + new previews + add slot */}
+            <div className="grid grid-cols-3 gap-2.5">
+              {/* Kept existing images */}
+              {keptImages.map((img, i) => (
+                <div key={`kept-${i}`} className="relative aspect-square rounded-xl overflow-hidden border border-outline-variant/40 group">
+                  <Image src={img.url} alt="" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                  <button
+                    type="button"
+                    onClick={() => removeKeptImage(i)}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/90"
+                  >
+                    <X className="w-3.5 h-3.5 text-white" />
+                  </button>
+                  {i === 0 && (
+                    <span className="absolute bottom-1.5 left-1.5 text-[9px] font-bold font-label bg-black/60 text-white px-1.5 py-0.5 rounded-full">MAIN</span>
+                  )}
+                </div>
+              ))}
+
+              {/* New image previews */}
+              {imagePreviews.map((src, i) => (
+                <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden border border-primary/40 group">
+                  <Image src={src} alt="" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                  <button
+                    type="button"
+                    onClick={() => removeNewImage(i)}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/90"
+                  >
+                    <X className="w-3.5 h-3.5 text-white" />
+                  </button>
+                  <span className="absolute bottom-1.5 left-1.5 text-[9px] font-bold font-label bg-primary/80 text-white px-1.5 py-0.5 rounded-full">NEW</span>
+                </div>
+              ))}
+
+              {/* Add slot — only show if under max */}
+              {keptImages.length + imagePreviews.length < MAX_IMAGES && (
+                <div
+                  className="aspect-square rounded-xl border-2 border-dashed border-outline-variant/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group"
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => { e.preventDefault(); handleFileChange(e.dataTransfer.files) }}
+                >
+                  <Upload className="w-5 h-5 text-on-surface-variant/40 group-hover:text-primary transition-colors mb-1" />
+                  <span className="text-[10px] font-label text-on-surface-variant/40 group-hover:text-primary transition-colors">Add photo</span>
+                </div>
+              )}
             </div>
 
-            {/* New image previews */}
-            {imagePreviews.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {imagePreviews.map((src, i) => (
-                  <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-outline-variant/40 group shrink-0">
-                    <Image src={src} alt="" fill className="object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removePreview(i)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-on-background/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-3 h-3 text-white" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <p className="text-[11px] text-on-surface-variant/50 font-label">
+              First image is the main thumbnail · PNG, JPG, WebP up to 10 MB
+            </p>
+            <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => { handleFileChange(e.target.files); if(fileRef.current) fileRef.current.value = '' }} />
           </SectionCard>
 
           {/* ── 5. Visibility ── */}
