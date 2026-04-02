@@ -144,6 +144,7 @@ export function LatestArrivalsSection() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading,  setLoading]  = useState(true)
   const [selected, setSelected] = useState<Product | null>(null)
+  const [scrollPct, setScrollPct] = useState(0)
   const rowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -156,9 +157,20 @@ export function LatestArrivalsSection() {
       .then(({ data }) => { if (data) setProducts(data as Product[]); setLoading(false) })
   }, [])
 
+  useEffect(() => {
+    const el = rowRef.current
+    if (!el) return
+    const onScroll = () => {
+      const max = el.scrollWidth - el.clientWidth
+      setScrollPct(max > 0 ? el.scrollLeft / max : 0)
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [loading])
+
   const scroll = (dir: 'left' | 'right') => {
     if (!rowRef.current) return
-    rowRef.current.scrollBy({ left: dir === 'right' ? 500 : -500, behavior: 'smooth' })
+    rowRef.current.scrollBy({ left: dir === 'right' ? 480 : -480, behavior: 'smooth' })
   }
 
   const scrollToCheckout = () => {
@@ -167,37 +179,48 @@ export function LatestArrivalsSection() {
   }
 
   return (
-    <section className="py-8 px-6 md:px-8 max-w-screen-2xl mx-auto">
+    <section className="py-10 max-w-screen-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-end justify-between mb-5">
+      <div className="flex items-center justify-between px-6 md:px-8 mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1.5">
             <Flame className="w-3.5 h-3.5 text-primary" />
-            <span className="text-[10px] uppercase tracking-[0.35em] text-primary font-label font-bold">Just Dropped</span>
+            <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-label font-bold">Just Dropped</span>
           </div>
           <h3 className="font-headline text-2xl md:text-3xl font-bold text-on-surface leading-tight">
-            Latest Arrivals
+            New Arrivals
           </h3>
         </div>
-        <div className="flex gap-2">
+
+        {/* Scroll progress track + arrow buttons */}
+        <div className="flex items-center gap-3">
+          {/* Progress bar */}
+          {!loading && products.length > 0 && (
+            <div className="hidden sm:block w-28 h-[3px] bg-outline-variant/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-150"
+                style={{ width: `${Math.max(8, scrollPct * 100)}%` }}
+              />
+            </div>
+          )}
           <button
             onClick={() => scroll('left')}
-            className="w-9 h-9 rounded-full border border-outline-variant/40 bg-background flex items-center justify-center hover:bg-surface-container hover:border-primary/30 transition-all shadow-sm"
+            className="w-9 h-9 rounded-full border border-outline-variant/30 bg-surface-container flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-200"
           >
-            <ChevronLeft className="w-4 h-4 text-on-surface-variant" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={() => scroll('right')}
-            className="w-9 h-9 rounded-full border border-outline-variant/40 bg-background flex items-center justify-center hover:bg-surface-container hover:border-primary/30 transition-all shadow-sm"
+            className="w-9 h-9 rounded-full border border-outline-variant/30 bg-surface-container flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-200"
           >
-            <ChevronRight className="w-4 h-4 text-on-surface-variant" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Scroll row */}
+      {/* Scroll row — no snap so clicks always register */}
       {loading ? (
-        <div className="flex gap-3">
+        <div className="flex gap-3 px-6 md:px-8">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="w-[200px] md:w-[240px] shrink-0 aspect-[3/4] rounded-2xl bg-surface-container animate-pulse" />
           ))}
@@ -205,21 +228,12 @@ export function LatestArrivalsSection() {
       ) : (
         <div
           ref={rowRef}
-          className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-3"
+          className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth px-6 md:px-8 pb-2"
         >
           {products.map((product) => (
             <LatestArrivalsCard key={product.id} product={product} onSelect={setSelected} />
           ))}
-          <div className="w-2 shrink-0" />
-        </div>
-      )}
-
-      {/* Scroll dots */}
-      {!loading && (
-        <div className="flex justify-center gap-1 mt-4">
-          {Array.from({ length: Math.min(5, products.length) }).map((_, i) => (
-            <div key={i} className={`h-1 rounded-full transition-all ${i === 0 ? 'w-4 bg-primary' : 'w-1.5 bg-on-surface/15'}`} />
-          ))}
+          <div className="w-4 shrink-0" />
         </div>
       )}
 
@@ -318,7 +332,7 @@ export function ProductGrid({ activeCategoryId, highlightedProductId }: ProductG
       <div className="mb-6 flex items-center gap-3 border-b border-outline-variant/20 pb-4">
         <span className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/40 font-label">Browse</span>
         <h2 className="font-headline text-xl md:text-2xl font-bold text-on-surface">
-          {products[0]?.category?.name ?? 'All Products'}
+          {activeCategory ? (products[0]?.category?.name ?? 'All Products') : 'All Products'}
         </h2>
         {products.length > 0 && (
           <span className="ml-auto text-xs text-on-surface-variant/40 font-label">{products.length}+ items</span>
