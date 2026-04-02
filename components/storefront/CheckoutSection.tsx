@@ -636,8 +636,8 @@ export function CheckoutSection() {
                       errors={errors}
                     />
 
-                    {/* Courier selection */}
-                    {couriers.length > 0 && (
+                    {/* Courier selection — temporarily disabled */}
+                    {false && couriers.length > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-label">

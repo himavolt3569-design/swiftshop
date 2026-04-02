@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { Header }               from '@/components/storefront/Header'
 import { Hero }                 from '@/components/storefront/Hero'
 import { CategoryBar }          from '@/components/storefront/CategoryBar'
-import { ProductGrid }          from '@/components/storefront/ProductGrid'
+import { ProductGrid, LatestArrivalsSection } from '@/components/storefront/ProductGrid'
 import { LiveFeedTicker }       from '@/components/storefront/LiveFeedTicker'
 import { CheckoutSection }      from '@/components/storefront/CheckoutSection'
 import { OrderTrackingSection } from '@/components/storefront/OrderTrackingSection'
@@ -108,6 +108,8 @@ export default function StorefrontPage() {
 
       <main className="pt-16">
         <Hero />
+
+        <LatestArrivalsSection />
 
         <Suspense>
           <CategoryBar onCategoryChange={setActiveCategoryId} />

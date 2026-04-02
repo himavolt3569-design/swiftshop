@@ -38,13 +38,12 @@ export function LiveFeedTicker() {
     checkSettings()
     fetchRecent()
 
+    // Listen on the real 'orders' table (views don't fire realtime events)
     const channel = supabase
       .channel('live-feed')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_orders_feed' }, (payload) => {
-        setEntries((prev) => {
-          const next = [payload.new as LiveFeedEntry, ...prev].slice(0, 10)
-          return next
-        })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
+        // Re-fetch the view so we always get the formatted data
+        fetchRecent()
       })
       .subscribe()
 

@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Heart } from 'lucide-react'
+import { Heart, ShoppingCart } from 'lucide-react'
 import { Product } from '@/lib/types'
 import { useCartStore }     from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
@@ -10,14 +10,6 @@ import { useSessionStore }  from '@/store/sessionStore'
 interface ProductCardProps {
   product: Product
   onClick: (product: Product) => void
-}
-
-function StockDot({ stock }: { stock: number }) {
-  if (stock <= 0)
-    return <span className="flex items-center gap-1.5 text-[11px] text-error font-label"><span className="w-1.5 h-1.5 rounded-full bg-error inline-block" />Out of Stock</span>
-  if (stock < 5)
-    return <span className="flex items-center gap-1.5 text-[11px] text-amber-600 font-label"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />Low Stock</span>
-  return <span className="flex items-center gap-1.5 text-[11px] text-success font-label"><span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />In Stock</span>
 }
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
@@ -29,6 +21,9 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   const defaultSize   = product.sizes?.[0]?.size ?? 'OS'
   const defaultStock  = product.sizes?.[0]?.stock ?? product.stock ?? 0
   const displayPrice  = product.sale_price ?? product.price
+  const discount      = product.sale_price
+    ? Math.round(((product.price - product.sale_price) / product.price) * 100)
+    : null
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -58,73 +53,85 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   }
 
   return (
-    <div
-      className="group cursor-pointer"
-      onClick={() => onClick(product)}
-    >
-      {/* Image */}
-      <div className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/40 rounded-lg overflow-hidden relative transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-lift">
-        {product.stock <= 0 ? (
-          <span className="absolute top-2 left-2 z-10 bg-inverse-surface text-inverse-on-surface text-[10px] px-1.5 py-0.5 rounded font-label">
-            Out of Stock
-          </span>
-        ) : product.sale_price ? (
-          <span className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded font-label">
-            -{Math.round(((product.price - product.sale_price) / product.price) * 100)}%
-          </span>
-        ) : null}
+    <div className="group cursor-pointer" onClick={() => onClick(product)}>
+      {/* Image container */}
+      <div className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden relative transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-xl">
+        {/* Badges */}
+        <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+          {product.stock <= 0 ? (
+            <span className="bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full font-label backdrop-blur-sm">
+              Sold Out
+            </span>
+          ) : discount ? (
+            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full font-label shadow-sm">
+              -{discount}%
+            </span>
+          ) : null}
+        </div>
 
+        {/* Wishlist */}
+        <button
+          onClick={toggleWish}
+          aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
+          className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all hover:scale-110 active:scale-95"
+        >
+          <Heart className={`w-4 h-4 transition-all ${isWished ? 'fill-red-500 text-red-500' : 'text-on-surface-variant'}`} />
+        </button>
+
+        {/* Product image */}
         {firstImage ? (
           <Image
             src={firstImage}
             alt={product.name}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-surface-container text-4xl font-headline text-on-surface-variant/30">
+          <div className="w-full h-full flex items-center justify-center bg-surface-container text-5xl font-headline text-on-surface-variant/20">
             {product.name.charAt(0)}
           </div>
         )}
 
-        {/* Wishlist btn */}
-        <button
-          onClick={toggleWish}
-          aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
-          className="absolute top-3 right-3 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-float hover:bg-background transition-colors"
-        >
-          <Heart className={`w-4 h-4 transition-colors ${isWished ? 'fill-primary text-primary' : 'text-on-surface-variant'}`} />
-        </button>
+        {/* Quick add — slides up on hover */}
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+          <button
+            onClick={handleAddToCart}
+            disabled={defaultStock <= 0}
+            className="w-full py-3 bg-primary/95 backdrop-blur-sm text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ShoppingCart className="w-3.5 h-3.5" />
+            {defaultStock <= 0 ? 'Out of Stock' : 'Quick Add'}
+          </button>
+        </div>
       </div>
 
       {/* Info */}
-      <div className="mt-4 px-0.5">
-        <p className="text-[10px] uppercase tracking-wide text-on-surface-variant mb-1 font-label">
-          {product.category?.name ?? ''}
-        </p>
-        <h3 className="text-[13px] font-semibold text-on-surface leading-snug line-clamp-1 font-body mb-1">
+      <div className="mt-2.5 px-0.5">
+        {product.category?.name && (
+          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant/50 mb-0.5 font-label truncate">
+            {product.category.name}
+          </p>
+        )}
+        <h3 className="text-[13px] md:text-sm font-semibold text-on-surface leading-snug line-clamp-1 font-body mb-1.5">
           {product.name}
         </h3>
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-base font-semibold text-primary">
-            NPR {displayPrice.toLocaleString()}
-          </span>
-          {product.sale_price && (
-            <span className="text-[13px] text-on-surface-variant line-through">
-              NPR {product.price.toLocaleString()}
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-baseline gap-1.5 min-w-0">
+            <span className="text-sm md:text-[15px] font-bold text-primary whitespace-nowrap">
+              NPR {displayPrice.toLocaleString()}
+            </span>
+            {product.sale_price && (
+              <span className="text-[11px] text-on-surface-variant/40 line-through hidden sm:inline">
+                {product.price.toLocaleString()}
+              </span>
+            )}
+          </div>
+          {defaultStock > 0 && defaultStock < 5 && (
+            <span className="text-[10px] text-amber-600 font-label whitespace-nowrap shrink-0">
+              {defaultStock} left
             </span>
           )}
-        </div>
-        <div className="flex items-center justify-between">
-          <StockDot stock={product.stock} />
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stock <= 0}
-            className="h-8 px-3 bg-primary text-white text-[11px] font-label font-semibold rounded-lg hover:bg-primary-container transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Add to Cart
-          </button>
         </div>
       </div>
     </div>
