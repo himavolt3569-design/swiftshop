@@ -138,7 +138,12 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
     addToast('success', `${product.name} added to cart`)
   }
 
-  const handleBuyNow = () => { handleAddToCart(); onBuyNow?.(); onClose() }
+  const handleBuyNow = () => {
+    handleAddToCart()
+    onClose()
+    // Scroll after the modal closes and body.overflow is restored
+    setTimeout(() => onBuyNow?.(), 50)
+  }
 
   const toggleWish = () => {
     if (isWished) { removeWish(product.id); addToast('info', 'Removed from wishlist') }
