@@ -5,6 +5,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/types";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { ProductDetailModal } from "./ProductDetailModal";
 
 const scrollTo = (id: string) => {
   const el = document.getElementById(id);
@@ -17,11 +18,12 @@ const scrollTo = (id: string) => {
 
 export function Hero() {
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [selected, setSelected] = useState<Product | null>(null);
 
   useEffect(() => {
     supabase
       .from("products")
-      .select("id, name, price, sale_price, images, stock")
+      .select("*, category:categories(id, name, slug), images, sizes")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(6)
@@ -66,7 +68,7 @@ export function Hero() {
               return (
                 <button
                   key={p.id}
-                  onClick={() => scrollTo("products")}
+                  onClick={() => setSelected(p)}
                   className="group text-left"
                   style={{ animationDelay: `${i * 80}ms` }}
                 >
@@ -124,6 +126,16 @@ export function Hero() {
         )}
 
       </div>
+
+      <ProductDetailModal
+        product={selected}
+        onClose={() => setSelected(null)}
+        onBuyNow={() => {
+          setSelected(null);
+          scrollTo("checkout");
+        }}
+        onSelectProduct={setSelected}
+      />
     </section>
   );
 }
