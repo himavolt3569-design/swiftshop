@@ -16,9 +16,21 @@ const scrollTo = (id: string) => {
     });
 };
 
+function pushProductUrl(slug: string) {
+  window.history.pushState(null, '', '/p/' + slug)
+}
+function clearProductUrl() {
+  if (window.location.pathname.startsWith('/p/')) {
+    window.history.pushState(null, '', '/')
+  }
+}
+
 export function Hero() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [selected, setSelected] = useState<Product | null>(null);
+
+  const selectProduct = (p: Product) => { pushProductUrl(p.slug); setSelected(p) }
+  const closeModal    = () => { clearProductUrl(); setSelected(null) }
 
   useEffect(() => {
     supabase
@@ -57,7 +69,7 @@ export function Hero() {
 
         {/* Product strip */}
         {featured.length > 0 ? (
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5 md:gap-4">
+          <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-6 gap-2.5 md:gap-4">
             {featured.map((p, i) => {
               const img = (p.images as { url: string }[])?.[0]?.url;
               const price = p.sale_price ?? p.price;
@@ -68,7 +80,7 @@ export function Hero() {
               return (
                 <button
                   key={p.id}
-                  onClick={() => setSelected(p)}
+                  onClick={() => selectProduct(p)}
                   className="group text-left"
                   style={{ animationDelay: `${i * 80}ms` }}
                 >
@@ -114,7 +126,7 @@ export function Hero() {
             })}
           </div>
         ) : (
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5 md:gap-4">
+          <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-6 gap-2.5 md:gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="animate-pulse">
                 <div className="aspect-[3/4] bg-stone-200 rounded-xl mb-2.5" />
@@ -129,12 +141,12 @@ export function Hero() {
 
       <ProductDetailModal
         product={selected}
-        onClose={() => setSelected(null)}
+        onClose={closeModal}
         onBuyNow={() => {
-          setSelected(null);
+          closeModal();
           scrollTo("checkout");
         }}
-        onSelectProduct={setSelected}
+        onSelectProduct={selectProduct}
       />
     </section>
   );

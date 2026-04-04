@@ -54,6 +54,8 @@ export interface CartItem {
   size: string
   quantity: number
   max_stock: number
+  category_id?: string | null
+  category_name?: string | null
 }
 
 export interface WishlistItem {

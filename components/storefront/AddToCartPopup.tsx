@@ -10,12 +10,15 @@ interface AddToCartPopupProps {
     name: string
     image?: string
     price: number
+    category_id?: string | null
+    category_name?: string | null
   } | null
   onDismiss: () => void
   onViewCart: () => void
+  onContinueShopping: (categoryId: string | null) => void
 }
 
-export function AddToCartPopup({ item, onDismiss, onViewCart }: AddToCartPopupProps) {
+export function AddToCartPopup({ item, onDismiss, onViewCart, onContinueShopping }: AddToCartPopupProps) {
   // Auto-dismiss after 4 seconds
   useEffect(() => {
     if (!item) return
@@ -58,10 +61,10 @@ export function AddToCartPopup({ item, onDismiss, onViewCart }: AddToCartPopupPr
             </div>
             <div className="flex gap-2 px-4 pb-4">
               <button
-                onClick={onDismiss}
+                onClick={() => { onDismiss(); onContinueShopping(item?.category_id ?? null) }}
                 className="flex-1 h-10 border border-outline-variant/40 text-on-surface text-sm font-label font-semibold rounded-xl hover:bg-surface-container transition-colors"
               >
-                Continue Shopping
+                {item?.category_name ? `See ${item.category_name}` : 'Continue Shopping'}
               </button>
               <button
                 onClick={() => { onDismiss(); onViewCart() }}

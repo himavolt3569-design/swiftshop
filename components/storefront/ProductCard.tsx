@@ -37,6 +37,8 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
       size:          defaultSize,
       quantity:      1,
       max_stock:     defaultStock,
+      category_id:   product.category_id ?? null,
+      category_name: product.category?.name ?? null,
     })
     addToast('success', `${product.name} added to cart`)
   }

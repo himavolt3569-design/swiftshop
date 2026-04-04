@@ -71,7 +71,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
   return (
     <>
       <nav className={`fixed top-0 w-full z-50 bg-background/92 backdrop-blur-xl border-b transition-all duration-300 ${scrolled ? 'border-outline-variant/20 shadow-ambient' : 'border-transparent'} h-16`}>
-        <div className="flex items-center justify-between px-5 md:px-10 h-full max-w-screen-2xl mx-auto gap-4">
+        <div className="flex items-center justify-between px-4 md:px-10 h-full max-w-screen-2xl mx-auto gap-2 md:gap-4">
 
           {/* Logo */}
           <a href="/" className="font-headline font-black italic text-xl text-on-surface tracking-tighter shrink-0 hover:text-primary transition-colors duration-200">
@@ -84,7 +84,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
             {/* Mobile search */}
             <IconButton onClick={() => setMobileSearchOpen(true)} label="Search" className="md:hidden">
               <Search className="w-[18px] h-[18px]" />
@@ -107,7 +107,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
             </IconButton>
 
             {/* Auth — divider then user actions */}
-            <div className="w-px h-5 bg-outline-variant/40 mx-1.5" />
+            <div className="hidden sm:block w-px h-5 bg-outline-variant/40 mx-1" />
 
             {hydrated && (
               user ? (
@@ -148,16 +148,16 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
                 </div>
               ) : (
                 /* Login + Sign up */
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     onClick={() => setAuthOpen(true)}
-                    className="text-on-surface-variant hover:text-on-surface text-sm font-label font-medium px-3 py-1.5 rounded-xl hover:bg-surface-container transition-all duration-200 active:scale-[0.97]"
+                    className="hidden sm:block text-on-surface-variant hover:text-on-surface text-sm font-label font-medium px-3 py-1.5 rounded-xl hover:bg-surface-container transition-all duration-200 active:scale-[0.97]"
                   >
                     Log in
                   </button>
                   <button
                     onClick={() => setAuthOpen(true)}
-                    className="bg-primary hover:bg-primary/90 text-white text-sm font-label font-semibold px-4 py-1.5 rounded-xl transition-all duration-200 shadow-sm shadow-primary/25 active:scale-[0.97]"
+                    className="bg-primary hover:bg-primary/90 text-white font-label font-semibold rounded-xl transition-all duration-200 shadow-sm shadow-primary/25 active:scale-[0.97] text-xs px-2.5 py-1.5 sm:text-sm sm:px-4"
                   >
                     Sign up
                   </button>

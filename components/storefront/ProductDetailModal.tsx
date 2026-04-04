@@ -132,7 +132,7 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
 
   const handleAddToCart = () => {
     if (!canBuy) return
-    addItem({ product_id: product.id, product_name: product.name, product_image: images[0]?.url ?? '', price: product.price, sale_price: product.sale_price, size: selectedSize === 'ONE_SIZE' ? '' : (selectedSize ?? ''), quantity, max_stock: maxQty })
+    addItem({ product_id: product.id, product_name: product.name, product_image: images[0]?.url ?? '', price: product.price, sale_price: product.sale_price, size: selectedSize === 'ONE_SIZE' ? '' : (selectedSize ?? ''), quantity, max_stock: maxQty, category_id: product.category_id ?? null, category_name: (product.category as { name?: string } | null)?.name ?? null })
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2000)
     addToast('success', `${product.name} added to cart`)
@@ -151,8 +151,9 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
   }
 
   const handleShare = async () => {
-    if (navigator.share) await navigator.share({ title: product.name, text: product.description, url: window.location.href })
-    else { await navigator.clipboard.writeText(window.location.href); addToast('success', 'Link copied!') }
+    const productUrl = `${window.location.origin}/p/${product.slug}`
+    if (navigator.share) await navigator.share({ title: product.name, text: product.description, url: productUrl })
+    else { await navigator.clipboard.writeText(productUrl); addToast('success', 'Link copied!') }
   }
 
   const handleSubmitReview = async () => {
@@ -196,7 +197,7 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
         onClick={onClose}
       >
         <div
-          className="relative w-full sm:max-w-5xl lg:max-w-6xl bg-background rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94dvh] sm:max-h-[92vh] animate-sheet-up sm:animate-slide-up"
+          className="relative w-full sm:max-w-5xl lg:max-w-6xl bg-background rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[94vh] sm:h-[92vh] animate-sheet-up sm:animate-slide-up"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── Drag handle (mobile) */}
@@ -216,12 +217,12 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
           <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
             {/* ════ LEFT — Image gallery ════ */}
-            <div className="lg:w-[48%] bg-stone-50 flex flex-col lg:sticky lg:top-0 shrink-0">
+            <div className="h-[46%] lg:h-auto lg:w-[48%] bg-stone-50 flex flex-col lg:sticky lg:top-0 shrink-0">
 
               {/* Main image */}
               <div
                 ref={imgRef}
-                className={`relative flex-1 aspect-[4/3] lg:aspect-auto lg:min-h-[60vh] overflow-hidden select-none ${zoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                className={`relative flex-1 lg:min-h-[60vh] overflow-hidden select-none ${zoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
                 onClick={() => images[activeImage]?.url && setZoomed(!zoomed)}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() => zoomed && setZoomed(false)}
@@ -295,7 +296,7 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
                 <div className="flex gap-2 px-4 py-3 bg-white border-t border-stone-100 overflow-x-auto no-scrollbar">
                   {images.map((img, i) => (
                     <button
-                      key={img.id}
+                      key={img.id ?? i}
                       onClick={() => setActiveImage(i)}
                       className={`w-14 h-14 shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-150 ${
                         i === activeImage ? 'border-primary shadow-md scale-105' : 'border-transparent opacity-50 hover:opacity-80 hover:border-stone-300'

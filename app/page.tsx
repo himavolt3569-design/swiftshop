@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Header }               from '@/components/storefront/Header'
 import { Hero }                 from '@/components/storefront/Hero'
 import { CategoryBar }          from '@/components/storefront/CategoryBar'
@@ -30,13 +31,14 @@ function OfflineBanner({ show }: { show: boolean }) {
   )
 }
 
-export default function StorefrontPage() {
+export function StorefrontPage({ initialProduct = null }: { initialProduct?: Product | null }) {
+  const router = useRouter()
   const [activeCategoryId,   setActiveCategoryId]   = useState<string | null>(null)
   const [highlightedProduct, setHighlightedProduct] = useState<string | null>(null)
   const [offline,            setOffline]            = useState(false)
   const [cartOpen,           setCartOpen]           = useState(false)
   const [wishlistOpen,       setWishlistOpen]       = useState(false)
-  const [cartPopup, setCartPopup] = useState<{ name: string; image?: string; price: number } | null>(null)
+  const [cartPopup, setCartPopup] = useState<{ name: string; image?: string; price: number; category_id?: string | null; category_name?: string | null } | null>(null)
   const lastAdded = useCartStore((s) => s.lastAdded)
 
   // Hydrate stores from localStorage (client only, avoids hydration mismatch)
@@ -53,9 +55,11 @@ export default function StorefrontPage() {
   useEffect(() => {
     if (!lastAdded) return
     setCartPopup({
-      name:  lastAdded.product_name,
-      image: lastAdded.product_image,
-      price: lastAdded.sale_price ?? lastAdded.price,
+      name:          lastAdded.product_name,
+      image:         lastAdded.product_image,
+      price:         lastAdded.sale_price ?? lastAdded.price,
+      category_id:   lastAdded.category_id ?? null,
+      category_name: lastAdded.category_name ?? null,
     })
   }, [lastAdded])
 
@@ -90,6 +94,17 @@ export default function StorefrontPage() {
         item={cartPopup}
         onDismiss={() => setCartPopup(null)}
         onViewCart={() => setCartOpen(true)}
+        onContinueShopping={(categoryId) => {
+          setCartPopup(null)
+          setActiveCategoryId(categoryId)
+          const params = new URLSearchParams()
+          if (categoryId) params.set('category', categoryId)
+          router.push(params.toString() ? '?' + params.toString() : '/', { scroll: false })
+          setTimeout(() => {
+            const el = document.getElementById('products')
+            if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth' })
+          }, 50)
+        }}
       />
       <MobileCheckoutBar
         onCheckout={() => {
@@ -118,6 +133,7 @@ export default function StorefrontPage() {
         <ProductGrid
           activeCategoryId={activeCategoryId}
           highlightedProductId={highlightedProduct}
+          initialProduct={initialProduct}
         />
 
         <LiveFeedTicker />
@@ -131,3 +147,5 @@ export default function StorefrontPage() {
     </>
   )
 }
+
+export default StorefrontPage

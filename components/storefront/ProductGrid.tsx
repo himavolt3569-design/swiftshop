@@ -14,6 +14,7 @@ import { useSessionStore }    from '@/store/sessionStore'
 interface ProductGridProps {
   activeCategoryId: string | null
   highlightedProductId?: string | null
+  initialProduct?: Product | null
 }
 
 const PAGE_SIZE = 12
@@ -50,6 +51,8 @@ function LatestArrivalsCard({
       size:          defaultSize,
       quantity:      1,
       max_stock:     defaultStock,
+      category_id:   product.category_id ?? null,
+      category_name: product.category?.name ?? null,
     })
     addToast('success', `${product.name} added to cart`)
   }
@@ -139,6 +142,16 @@ function LatestArrivalsCard({
   )
 }
 
+// ── Shared URL helpers ────────────────────────────────────────────────────────
+function pushProductUrl(slug: string) {
+  window.history.pushState(null, '', '/p/' + slug)
+}
+function clearProductUrl() {
+  if (window.location.pathname.startsWith('/p/')) {
+    window.history.pushState(null, '', '/')
+  }
+}
+
 // ── Latest Arrivals section — exported for placement above category bar ────────
 export function LatestArrivalsSection() {
   const [products, setProducts] = useState<Product[]>([])
@@ -146,6 +159,9 @@ export function LatestArrivalsSection() {
   const [selected, setSelected] = useState<Product | null>(null)
   const [scrollPct, setScrollPct] = useState(0)
   const rowRef = useRef<HTMLDivElement>(null)
+
+  const selectProduct = (p: Product) => { pushProductUrl(p.slug); setSelected(p) }
+  const closeModal    = () => { clearProductUrl(); setSelected(null) }
 
   useEffect(() => {
     supabase
@@ -231,7 +247,7 @@ export function LatestArrivalsSection() {
           className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth px-6 md:px-8 pb-2"
         >
           {products.map((product) => (
-            <LatestArrivalsCard key={product.id} product={product} onSelect={setSelected} />
+            <LatestArrivalsCard key={product.id} product={product} onSelect={selectProduct} />
           ))}
           <div className="w-4 shrink-0" />
         </div>
@@ -240,9 +256,9 @@ export function LatestArrivalsSection() {
       {/* Product detail modal */}
       <ProductDetailModal
         product={selected}
-        onClose={() => setSelected(null)}
+        onClose={closeModal}
         onBuyNow={scrollToCheckout}
-        onSelectProduct={setSelected}
+        onSelectProduct={selectProduct}
       />
     </section>
   )
@@ -266,15 +282,24 @@ function useInfiniteScroll(onLoadMore: () => void, enabled: boolean) {
 }
 
 // ── Main grid ─────────────────────────────────────────────────────────────────
-export function ProductGrid({ activeCategoryId, highlightedProductId }: ProductGridProps) {
+export function ProductGrid({ activeCategoryId, highlightedProductId, initialProduct }: ProductGridProps) {
   const [products,  setProducts]  = useState<Product[]>([])
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState(false)
   const [hasMore,   setHasMore]   = useState(false)
   const [page,      setPage]      = useState(0)
   const [fetching,  setFetching]  = useState(false)
-  const [selected,  setSelected]  = useState<Product | null>(null)
+  const [selected,  setSelected]  = useState<Product | null>(initialProduct ?? null)
   const [activeCategory, setActiveCategory] = useState(activeCategoryId)
+
+  const selectProduct = (p: Product) => { pushProductUrl(p.slug); setSelected(p) }
+  const closeModal    = () => { clearProductUrl(); setSelected(null) }
+
+  // Open initial product immediately (shared link scenario)
+  const initialProductRef = useRef(initialProduct)
+  useEffect(() => {
+    if (initialProductRef.current) setSelected(initialProductRef.current)
+  }, [])
 
   const fetchProducts = useCallback(async (catId: string | null, pageNum: number, append = false) => {
     if (pageNum === 0) setLoading(true); else setFetching(true)
@@ -309,7 +334,8 @@ export function ProductGrid({ activeCategoryId, highlightedProductId }: ProductG
   useEffect(() => {
     if (!highlightedProductId) return
     const prod = products.find((p) => p.id === highlightedProductId)
-    if (prod) setSelected(prod)
+    if (prod) selectProduct(prod)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightedProductId, products])
 
   const loadMore = useCallback(() => {
@@ -373,7 +399,7 @@ export function ProductGrid({ activeCategoryId, highlightedProductId }: ProductG
       {products.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} onClick={setSelected} />
+            <ProductCard key={product.id} product={product} onClick={selectProduct} />
           ))}
         </div>
       )}
@@ -399,9 +425,9 @@ export function ProductGrid({ activeCategoryId, highlightedProductId }: ProductG
       {/* Product detail modal */}
       <ProductDetailModal
         product={selected}
-        onClose={() => setSelected(null)}
+        onClose={closeModal}
         onBuyNow={scrollToCheckout}
-        onSelectProduct={setSelected}
+        onSelectProduct={selectProduct}
       />
     </section>
   )
