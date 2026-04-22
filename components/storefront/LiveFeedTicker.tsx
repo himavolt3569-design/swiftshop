@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase }         from '@/lib/supabase'
 import { LiveFeedEntry }    from '@/lib/types'
 
@@ -17,7 +18,6 @@ export function LiveFeedTicker() {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    // Check if admin has disabled live feed
     const checkSettings = async () => {
       const { data } = await supabase
         .from('shop_settings')
@@ -38,11 +38,9 @@ export function LiveFeedTicker() {
     checkSettings()
     fetchRecent()
 
-    // Listen on the real 'orders' table (views don't fire realtime events)
     const channel = supabase
       .channel('live-feed')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
-        // Re-fetch the view so we always get the formatted data
         fetchRecent()
       })
       .subscribe()
@@ -52,13 +50,14 @@ export function LiveFeedTicker() {
 
   if (!visible || entries.length === 0) return null
 
-  const repeated = [...entries, ...entries] // duplicate for seamless loop
+  const repeated = [...entries, ...entries]
 
   return (
-    <div className="w-full bg-dark-surface h-11 flex items-center overflow-hidden">
+    <div className="w-full glass-dark h-12 flex items-center overflow-hidden">
       {/* Label */}
-      <div className="shrink-0 px-4 border-r border-white/10">
-        <span className="text-[10px] uppercase tracking-widest text-white/60 font-label">Live Orders</span>
+      <div className="shrink-0 px-5 border-r border-white/8 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-accent animate-breathe" />
+        <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-display font-semibold">Live</span>
       </div>
 
       {/* Ticker */}
@@ -76,15 +75,15 @@ export function LiveFeedTicker() {
           }}
         >
           {repeated.map((entry, i) => (
-            <span key={`${entry.id}-${i}`} className="inline-flex items-center gap-3 px-4">
-              <span className="text-[13px] text-white font-body">
-                <span className="font-medium">{entry.customer_first_name}</span>
+            <span key={`${entry.id}-${i}`} className="inline-flex items-center gap-3 px-5">
+              <span className="text-[13px] text-white/90 font-body">
+                <span className="font-semibold">{entry.customer_first_name}</span>
                 {' ordered '}
-                <span className="font-medium">{entry.product_name}</span>
+                <span className="font-semibold text-primary-fixed-dim">{entry.product_name}</span>
                 {entry.size ? ` (${entry.size})` : ''}
               </span>
-              <span className="text-[13px] text-white/40 font-body">- {timeAgo(entry.created_at)}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-primary-container inline-block" />
+              <span className="text-[12px] text-white/30 font-body">• {timeAgo(entry.created_at)}</span>
+              <span className="w-1 h-1 rounded-full bg-outline-variant/30 inline-block" />
             </span>
           ))}
         </div>

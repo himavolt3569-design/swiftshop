@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ShopSettings } from '@/lib/types'
+import { gsap, ScrollTrigger } from '@/lib/gsap'
 
 const scrollTo = (id: string) => {
   const el = document.getElementById(id)
@@ -12,6 +13,7 @@ const scrollTo = (id: string) => {
 export function Footer() {
   const [activeProvinces, setActiveProvinces] = useState<string[]>([])
   const [settings, setSettings] = useState<ShopSettings | null>(null)
+  const footerRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,6 +27,26 @@ export function Footer() {
     fetchData()
   }, [])
 
+  // GSAP entrance
+  useEffect(() => {
+    if (!footerRef.current) return
+    const ctx = gsap.context(() => {
+      gsap.from('.footer-col', {
+        y: 30,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: footerRef.current,
+          start: 'top 90%',
+          once: true,
+        },
+      })
+    }, footerRef)
+    return () => ctx.revert()
+  }, [])
+
   const year = new Date().getFullYear()
   const contactEmail = settings?.contact_email
 
@@ -35,20 +57,27 @@ export function Footer() {
   ].filter((s) => s.url)
 
   return (
-    <footer className="bg-dark-surface pt-12 pb-6 px-8">
+    <footer ref={footerRef} className="gradient-dark pt-14 pb-6 px-8">
       <div className="max-w-screen-2xl mx-auto">
         {/* Three columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
           {/* Brand */}
-          <div>
-            <h3 className="font-headline font-black italic text-[22px] text-white mb-3 tracking-tighter">Goreto.store</h3>
-            <p className="text-[13px] text-white/60 font-body leading-relaxed max-w-[240px]">
+          <div className="footer-col">
+            <h3 className="font-logo font-black italic text-[22px] text-white mb-3 tracking-tighter">Goreto.store</h3>
+            <p className="text-[13px] text-white/50 font-body leading-relaxed max-w-[260px]">
               Curated essentials from the finest artisans across Nepal. Fast delivery, real tracking.
             </p>
             {socialLinks.length > 0 && (
-              <div className="flex gap-4 mt-5">
+              <div className="flex gap-4 mt-6">
                 {socialLinks.map((s) => (
-                  <a key={s.label} href={s.url!} target="_blank" rel="noopener noreferrer" aria-label={s.label} className="text-white/50 hover:text-primary-container transition-colors">
+                  <a
+                    key={s.label}
+                    href={s.url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    className="text-white/40 hover:text-accent transition-colors duration-300"
+                  >
                     {s.icon}
                   </a>
                 ))}
@@ -57,13 +86,13 @@ export function Footer() {
           </div>
 
           {/* Quick links */}
-          <div>
-            <p className="text-[13px] uppercase tracking-[0.2em] text-white/40 font-label font-medium mb-4">Shop</p>
-            <ul className="space-y-2">
+          <div className="footer-col">
+            <p className="text-[11px] uppercase tracking-[0.25em] text-white/30 font-display font-semibold mb-5">Shop</p>
+            <ul className="space-y-2.5">
               {[
                 { label: 'All Products', action: () => scrollTo('products') },
                 { label: 'Categories',  action: () => scrollTo('products') },
-                { label: 'Track Order', action: () => scrollTo('tracking') },
+                { label: 'Track Order', action: () => { window.location.href = '/track' } },
                 ...(contactEmail
                   ? [{ label: 'Contact Us', action: () => { window.location.href = `mailto:${contactEmail}` } }]
                   : []),
@@ -71,9 +100,10 @@ export function Footer() {
                 <li key={link.label}>
                   <button
                     onClick={link.action}
-                    className="text-[13px] text-white/70 hover:text-primary-container hover:underline underline-offset-2 transition-colors font-body"
+                    className="text-[13px] text-white/60 hover:text-accent transition-colors duration-300 font-body relative group"
                   >
                     {link.label}
+                    <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-accent transition-all duration-300 group-hover:w-full" />
                   </button>
                 </li>
               ))}
@@ -81,18 +111,18 @@ export function Footer() {
           </div>
 
           {/* Delivery areas */}
-          <div>
-            <p className="text-[13px] uppercase tracking-[0.2em] text-white/40 font-label font-medium mb-4">We Deliver To</p>
+          <div className="footer-col">
+            <p className="text-[11px] uppercase tracking-[0.25em] text-white/30 font-display font-semibold mb-5">We Deliver To</p>
             {activeProvinces.length > 0 ? (
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {activeProvinces.map((p) => (
-                  <li key={p} className="text-[13px] text-white/60 font-body">{p}</li>
+                  <li key={p} className="text-[13px] text-white/50 font-body">{p}</li>
                 ))}
               </ul>
             ) : (
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {['Province 3 - Bagmati', 'Province 4 - Gandaki', 'Province 5 - Lumbini'].map((p) => (
-                  <li key={p} className="text-[13px] text-white/60 font-body">{p}</li>
+                  <li key={p} className="text-[13px] text-white/50 font-body">{p}</li>
                 ))}
               </ul>
             )}
@@ -100,9 +130,9 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-white/5 pt-5 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-[11px] text-white/40 font-body">&copy; {year} Goreto.store. All rights reserved.</p>
-          <p className="text-[11px] text-white/40 font-body">Built with care in Nepal</p>
+        <div className="border-t border-white/[0.06] pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
+          <p className="text-[11px] text-white/30 font-body">&copy; {year} Goreto.store. All rights reserved.</p>
+          <p className="text-[11px] text-white/30 font-body">Built with care in Nepal</p>
         </div>
       </div>
     </footer>

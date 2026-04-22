@@ -15,9 +15,13 @@ import {
   ChevronRight,
   Truck,
   Zap,
+  Shield,
+  RotateCcw,
+  BadgeCheck,
 } from "lucide-react";
 import Image from "next/image";
-import { gsap } from "@/lib/gsap";
+import { motion } from "framer-motion";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { useCartStore } from "@/store/cartStore";
 import { useSessionStore } from "@/store/sessionStore";
 import { supabase } from "@/lib/supabase";
@@ -58,23 +62,31 @@ function validate(data: Partial<OrderFormData>, items: unknown[]): FormErrors {
 
 function StepIndicator({
   active,
+  completed,
   step,
   label,
 }: {
   active: boolean;
+  completed?: boolean;
   step: number;
   label: string;
 }) {
   return (
     <div
-      className={`flex items-center gap-2 text-sm font-label font-semibold transition-colors ${active ? "text-primary" : "text-on-surface-variant/40"}`}
+      className={`flex items-center gap-2.5 text-sm font-display font-semibold transition-all duration-300 ${active ? "text-primary" : completed ? "text-accent" : "text-on-surface-variant/35"}`}
     >
       <div
-        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${active ? "bg-primary text-white" : "bg-surface-container text-on-surface-variant/40"}`}
+        className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+          active
+            ? "gradient-primary text-white shadow-glow-sm"
+            : completed
+              ? "bg-accent/15 text-accent"
+              : "bg-surface-container text-on-surface-variant/35"
+        }`}
       >
-        {step}
+        {completed ? <CheckCircle2 className="w-3.5 h-3.5" /> : step}
       </div>
-      {label}
+      <span className="hidden sm:inline">{label}</span>
     </div>
   );
 }
@@ -149,18 +161,22 @@ export function CheckoutSection() {
     }
   }, [form.district, couriers])
 
-  // GSAP entry animation
+  // GSAP entry animation with ScrollTrigger
   useEffect(() => {
     if (!sectionRef.current) return;
     const ctx = gsap.context(() => {
       gsap.from(".checkout-card", {
-        y: 30,
+        y: 40,
         opacity: 0,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: "power2.out",
+        duration: 0.7,
+        stagger: 0.12,
+        ease: "power3.out",
         immediateRender: false,
-        delay: 0.1,
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 80%',
+          once: true,
+        },
       });
     }, sectionRef);
     return () => ctx.revert();
@@ -278,59 +294,70 @@ export function CheckoutSection() {
 
   const scrollToTracking = () => {
     if (orderComplete?.order_number) {
-      const url = new URL(window.location.href)
-      url.searchParams.set('order', orderComplete.order_number)
-      window.history.replaceState({}, '', url.toString())
+      window.location.href = `/track?order=${orderComplete.order_number}`
+    } else {
+      window.location.href = '/track'
     }
-    const el = document.getElementById("tracking");
-    if (el)
-      window.scrollTo({
-        top: el.getBoundingClientRect().top + window.scrollY - 60,
-        behavior: "smooth",
-      });
   };
 
   // ── Order success screen ──────────────────────────────────────
   if (orderComplete) {
     return (
-      <section id="checkout" className="bg-background py-24 px-6">
-        <div className="max-w-lg mx-auto text-center">
-          <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-success" />
-          </div>
-          <h2 className="font-headline text-3xl font-bold text-on-surface mb-3">
+      <section id="checkout" className="bg-surface-container-low/30 py-24 px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className="max-w-lg mx-auto text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
+            className="w-20 h-20 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto mb-6"
+          >
+            <CheckCircle2 className="w-10 h-10 text-accent" />
+          </motion.div>
+          <h2 className="font-display text-3xl font-bold text-on-surface mb-3">
             Order Confirmed!
           </h2>
-          <p className="text-on-surface-variant font-body mb-2">
+          <p className="text-on-surface-variant/60 font-body mb-2">
             Thank you for shopping with Goreto.store. Your order number is:
           </p>
-          <div className="inline-block bg-primary/5 border border-primary/20 rounded-2xl px-8 py-4 mb-8">
-            <p className="text-4xl font-headline font-bold text-primary tracking-wider">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="inline-block glass-primary rounded-2xl px-8 py-4 mb-8"
+          >
+            <p className="text-4xl font-display font-bold text-primary tracking-wider">
               {orderComplete.order_number}
             </p>
-          </div>
-          <p className="text-sm text-on-surface-variant font-body mb-8">
+          </motion.div>
+          <p className="text-sm text-on-surface-variant/60 font-body mb-8">
             Expected delivery in 2–4 business days.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
+            <motion.button
               onClick={scrollToTracking}
-              className="px-8 py-3.5 bg-primary text-white font-label font-semibold rounded-xl hover:bg-primary-container transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+              className="px-8 py-3.5 btn-gradient text-white font-display font-semibold rounded-xl flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <Truck className="w-4 h-4" /> Track My Order
-            </button>
+            </motion.button>
             <button
               onClick={() =>
                 document
                   .getElementById("products")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
-              className="px-8 py-3.5 border border-outline-variant text-on-surface font-label font-semibold rounded-xl hover:bg-surface-container transition-all flex items-center justify-center gap-2"
+              className="px-8 py-3.5 btn-glass text-on-surface rounded-xl flex items-center justify-center gap-2"
             >
               <ShoppingBag className="w-4 h-4" /> Continue Shopping
             </button>
           </div>
-        </div>
+        </motion.div>
       </section>
     );
   }
@@ -340,15 +367,15 @@ export function CheckoutSection() {
     <section
       ref={sectionRef}
       id="checkout"
-      className="bg-surface-container-low/50 py-20 px-6"
+      className="bg-surface-container-low/30 py-20 px-6"
     >
       <div className="max-w-screen-xl mx-auto">
         {/* Section header */}
         <div className="mb-10">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-on-surface-variant/60 font-label mb-2">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-on-surface-variant/50 font-display font-semibold mb-2">
             Checkout
           </p>
-          <h2 className="font-headline text-3xl font-bold text-on-surface">
+          <h2 className="font-display text-3xl font-bold text-on-surface">
             Complete Your Order
           </h2>
         </div>
@@ -357,24 +384,16 @@ export function CheckoutSection() {
           {/* ── LEFT: Delivery form ─── */}
           <div ref={formRef} className="space-y-5">
             {/* Step indicators */}
-            <div className="checkout-card flex items-center gap-6 pb-5 border-b border-outline-variant/20">
-              <StepIndicator active={activeStep === 1} step={1} label="Cart" />
-              <ChevronRight className="w-4 h-4 text-on-surface-variant/30" />
-              <StepIndicator
-                active={activeStep === 2}
-                step={2}
-                label="Delivery"
-              />
-              <ChevronRight className="w-4 h-4 text-on-surface-variant/30" />
-              <StepIndicator
-                active={activeStep === 3}
-                step={3}
-                label="Payment"
-              />
+            <div className="checkout-card flex items-center gap-4 sm:gap-6 pb-5 border-b border-outline-variant/15">
+              <StepIndicator active={activeStep === 1} completed={activeStep > 1} step={1} label="Cart" />
+              <div className={`flex-1 h-[2px] rounded-full max-w-[60px] transition-colors duration-500 ${activeStep > 1 ? 'bg-accent' : 'bg-outline-variant/15'}`} />
+              <StepIndicator active={activeStep === 2} completed={activeStep > 2} step={2} label="Delivery" />
+              <div className={`flex-1 h-[2px] rounded-full max-w-[60px] transition-colors duration-500 ${activeStep > 2 ? 'bg-accent' : 'bg-outline-variant/15'}`} />
+              <StepIndicator active={activeStep === 3} step={3} label="Payment" />
             </div>
 
             {/* Step 1: Cart review */}
-            <div className="checkout-card bg-background rounded-2xl border border-outline-variant/20 overflow-hidden">
+            <div className="checkout-card glass rounded-2xl overflow-hidden shadow-float">
               <button
                 className="w-full flex items-center justify-between p-5 hover:bg-surface-container/30 transition-colors"
                 onClick={() => setActiveStep(activeStep === 1 ? 0 : 1)}
@@ -554,7 +573,7 @@ export function CheckoutSection() {
             </div>
 
             {/* Step 2: Delivery details */}
-            <div className="checkout-card bg-background rounded-2xl border border-outline-variant/20 overflow-hidden">
+            <div className="checkout-card glass rounded-2xl overflow-hidden shadow-float">
               <button
                 className="w-full flex items-center justify-between p-5 hover:bg-surface-container/30 transition-colors"
                 onClick={() => setActiveStep(activeStep === 2 ? 0 : 2)}
@@ -754,7 +773,7 @@ export function CheckoutSection() {
             </div>
 
             {/* Step 3: Payment */}
-            <div className="checkout-card bg-background rounded-2xl border border-outline-variant/20 overflow-hidden">
+            <div className="checkout-card glass rounded-2xl overflow-hidden shadow-float">
               <button
                 className="w-full flex items-center justify-between p-5 hover:bg-surface-container/30 transition-colors"
                 onClick={() => setActiveStep(activeStep === 3 ? 0 : 3)}
@@ -849,9 +868,9 @@ export function CheckoutSection() {
 
           {/* ── RIGHT: Order summary ─── */}
           <div className="checkout-card lg:sticky lg:top-20 space-y-4">
-            <div className="bg-background rounded-2xl border border-outline-variant/20 overflow-hidden">
+            <div className="glass rounded-2xl overflow-hidden shadow-depth">
               <div className="p-5 border-b border-outline-variant/10">
-                <h3 className="font-headline text-lg font-bold text-on-surface">
+                <h3 className="font-display text-lg font-bold text-on-surface">
                   Order Summary
                 </h3>
               </div>
@@ -957,16 +976,16 @@ export function CheckoutSection() {
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-2">
               {[
-                { icon: "🔒", text: "Secure Checkout" },
-                { icon: "↩️", text: "7-day Returns" },
-                { icon: "✅", text: "Verified Store" },
+                { icon: <Shield className="w-4 h-4 text-accent" />, text: "Secure Checkout" },
+                { icon: <RotateCcw className="w-4 h-4 text-primary" />, text: "7-day Returns" },
+                { icon: <BadgeCheck className="w-4 h-4 text-accent" />, text: "Verified Store" },
               ].map((b) => (
                 <div
                   key={b.text}
-                  className="bg-background border border-outline-variant/20 rounded-xl p-3 text-center"
+                  className="glass rounded-xl p-3 text-center hover:shadow-float transition-shadow duration-300"
                 >
-                  <p className="text-base mb-1">{b.icon}</p>
-                  <p className="text-[10px] text-on-surface-variant font-label leading-tight">
+                  <div className="flex justify-center mb-1.5">{b.icon}</div>
+                  <p className="text-[10px] text-on-surface-variant/60 font-label leading-tight">
                     {b.text}
                   </p>
                 </div>
@@ -974,10 +993,12 @@ export function CheckoutSection() {
             </div>
 
             {/* Final place order button */}
-            <button
+            <motion.button
               onClick={handleSubmit}
               disabled={submitting || items.length === 0}
-              className="w-full py-4 bg-primary text-white font-label font-bold text-base rounded-2xl hover:bg-primary-container transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
+              className="w-full py-4 btn-gradient text-white font-display font-bold text-base rounded-2xl disabled:opacity-50 flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
             >
               {submitting ? (
                 <>
@@ -989,7 +1010,7 @@ export function CheckoutSection() {
                   {total.toLocaleString()}
                 </>
               )}
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

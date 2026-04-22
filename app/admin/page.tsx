@@ -80,7 +80,7 @@ function fmt(n: number) {
 function StatusBadge({ status }: { status: string }) {
   const c = STATUS_COLORS[status] ?? STATUS_COLORS.placed
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold font-label uppercase tracking-wide ${c.bg} ${c.text}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${c.bg} ${c.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
       {status.replace(/_/g, ' ')}
     </span>
@@ -99,13 +99,13 @@ function KpiCard({
   loading?: boolean
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.06] p-5 hover:shadow-md hover:border-black/[0.10] transition-all duration-200">
+    <div className="bg-white rounded-2xl border border-[#1E1C1A]/[0.06] p-5 hover:shadow-md hover:border-[#1E1C1A]/[0.10] transition-all duration-200">
       <div className="flex items-start justify-between mb-5">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${accentColor ?? 'bg-[#F4F2EF] text-[#1A1714]/40'}`}>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${accentColor ?? 'bg-[#F7F5F2] text-[#3A3530]/40'}`}>
           <Icon className="w-4 h-4" strokeWidth={1.8} />
         </div>
         {sub && !loading && (
-          <span className={`flex items-center gap-1 text-[11px] font-bold font-label ${subUp !== false ? 'text-emerald-600' : 'text-red-500'}`}>
+          <span className={`flex items-center gap-1 text-[11px] font-bold ${subUp !== false ? 'text-emerald-600' : 'text-red-500'}`}>
             {subUp !== false ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             {sub}
           </span>
@@ -113,13 +113,13 @@ function KpiCard({
       </div>
       {loading ? (
         <>
-          <div className="h-7 w-24 bg-black/[0.04] rounded-lg animate-pulse mb-2" />
-          <div className="h-3 w-16 bg-black/[0.03] rounded animate-pulse" />
+          <div className="h-7 w-24 bg-[#1E1C1A]/[0.04] rounded-lg animate-pulse mb-2" />
+          <div className="h-3 w-16 bg-[#1E1C1A]/[0.03] rounded animate-pulse" />
         </>
       ) : (
         <>
-          <p className="text-[22px] font-bold text-[#0F0F0F] font-headline leading-none mb-1.5">{value}</p>
-          <p className="text-[11px] text-[#1A1714]/40 font-label">{label}</p>
+          <p className="text-[22px] font-bold text-[#1E1C1A] leading-none mb-1.5">{value}</p>
+          <p className="text-[11px] text-[#3A3530]/50">{label}</p>
         </>
       )}
     </div>
@@ -281,17 +281,17 @@ export default function AdminDashboardPage() {
       {/* ── Page header ─────────────────────────────────────────── */}
       <div className="dash-item flex items-center justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-[#1A1714]/30 font-label mb-0.5">Admin</p>
-          <h1 className="text-[22px] font-bold text-[#0F0F0F] font-label tracking-tight">Overview</h1>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[#3A3530]/40 mb-0.5 font-medium">Admin</p>
+          <h1 className="text-[24px] font-semibold text-[#1E1C1A] tracking-tight">Overview</h1>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/60 px-3 py-1.5 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-bold font-label text-emerald-700">Live</span>
+            <span className="text-[11px] font-bold text-emerald-700">Live</span>
           </div>
           <Link
             href="/admin/orders"
-            className="flex items-center gap-1.5 text-[12px] font-semibold font-label text-[#1A1714]/50 hover:text-primary transition-colors duration-150 bg-white border border-black/[0.07] px-3 py-1.5 rounded-full hover:border-primary/30"
+            className="flex items-center gap-1.5 text-[12px] font-medium text-[#3A3530]/60 hover:text-primary transition-colors duration-150 bg-white border border-[#1E1C1A]/[0.07] px-3 py-1.5 rounded-full hover:border-primary/30"
           >
             All Orders <ArrowRight className="w-3.5 h-3.5" />
           </Link>
@@ -332,11 +332,11 @@ export default function AdminDashboardPage() {
           { label: 'Week Revenue',  value: `NPR ${fmt(stats?.weekRevenue ?? 0)}` },
           { label: 'Week Orders',   value: fmt(stats?.weekOrders ?? 0) },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-black/[0.06] rounded-2xl px-5 py-4 hover:shadow-sm hover:border-black/[0.10] transition-all duration-200">
-            <p className="text-[10px] uppercase tracking-wider text-[#1A1714]/35 font-label mb-1.5">{s.label}</p>
+          <div key={s.label} className="bg-white border border-[#1E1C1A]/[0.06] rounded-2xl px-5 py-4 hover:shadow-sm hover:border-[#1E1C1A]/[0.10] transition-all duration-200">
+            <p className="text-[10px] uppercase tracking-wider text-[#3A3530]/40 mb-1.5 font-medium">{s.label}</p>
             {loading
-              ? <div className="h-6 w-20 bg-black/[0.04] rounded-lg animate-pulse" />
-              : <p className="text-xl font-bold text-[#0F0F0F] font-headline">{s.value}</p>
+              ? <div className="h-6 w-20 bg-[#1E1C1A]/[0.04] rounded-lg animate-pulse" />
+              : <p className="text-xl font-semibold text-[#1E1C1A]">{s.value}</p>
             }
           </div>
         ))}
@@ -344,10 +344,10 @@ export default function AdminDashboardPage() {
 
       {/* ── Status breakdown ────────────────────────────────────── */}
       {!loading && orders.length > 0 && (
-        <div className="dash-item bg-white border border-black/[0.06] rounded-2xl px-6 py-5">
+        <div className="dash-item bg-white border border-[#1E1C1A]/[0.06] rounded-2xl px-6 py-5">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[11px] uppercase tracking-[0.15em] text-[#1A1714]/35 font-label">Order Status Breakdown</p>
-            <span className="text-[11px] text-[#1A1714]/30 font-label">{orders.length} recent</span>
+            <p className="text-[11px] uppercase tracking-[0.15em] text-[#3A3530]/40 font-medium">Order Status Breakdown</p>
+            <span className="text-[11px] text-[#3A3530]/40">{orders.length} recent</span>
           </div>
           <div className="flex gap-1 h-2 rounded-full overflow-hidden mb-4">
             {Object.entries(STATUS_COLORS).map(([status, c]) => {
@@ -364,8 +364,8 @@ export default function AdminDashboardPage() {
               return (
                 <div key={status} className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${c.dot}`} />
-                  <span className="text-[11px] text-[#1A1714]/50 font-label capitalize">{status.replace(/_/g, ' ')}</span>
-                  <span className="text-[11px] font-bold text-[#1A1714]/70 font-label">{count}</span>
+                  <span className="text-[11px] text-[#3A3530]/60 capitalize font-medium">{status.replace(/_/g, ' ')}</span>
+                  <span className="text-[11px] font-semibold text-[#3A3530]/80">{count}</span>
                 </div>
               )
             })}
@@ -377,17 +377,17 @@ export default function AdminDashboardPage() {
       <div className="dash-item grid gap-5 lg:grid-cols-[1fr_360px]">
 
         {/* Recent Orders */}
-        <div className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.05] shrink-0">
+        <div className="bg-white border border-[#1E1C1A]/[0.06] rounded-2xl overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1C1A]/[0.05] shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-[#F4F2EF] flex items-center justify-center">
-                <ShoppingBasket className="w-3.5 h-3.5 text-[#1A1714]/40" />
+              <div className="w-7 h-7 rounded-xl bg-[#F7F5F2] flex items-center justify-center">
+                <ShoppingBasket className="w-3.5 h-3.5 text-[#3A3530]/50" />
               </div>
-              <h3 className="text-[13px] font-bold text-[#0F0F0F] font-label">Recent Orders</h3>
+              <h3 className="text-[13px] font-semibold text-[#1E1C1A]">Recent Orders</h3>
             </div>
             <Link
               href="/admin/orders"
-              className="text-[11px] text-primary hover:text-primary/70 transition-colors duration-150 font-label font-semibold flex items-center gap-1"
+              className="text-[11px] text-primary hover:text-primary/70 transition-colors duration-150 font-medium flex items-center gap-1"
             >
               View all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -398,24 +398,24 @@ export default function AdminDashboardPage() {
               <div className="p-5 space-y-2">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-3 px-1">
-                    <div className="w-1 h-10 bg-black/[0.04] rounded-full animate-pulse shrink-0" />
+                    <div className="w-1 h-10 bg-[#1E1C1A]/[0.04] rounded-full animate-pulse shrink-0" />
                     <div className="flex-1 space-y-1.5">
-                      <div className="h-3 bg-black/[0.04] rounded w-2/3 animate-pulse" />
-                      <div className="h-2.5 bg-black/[0.03] rounded w-1/2 animate-pulse" />
+                      <div className="h-3 bg-[#1E1C1A]/[0.04] rounded w-2/3 animate-pulse" />
+                      <div className="h-2.5 bg-[#1E1C1A]/[0.03] rounded w-1/2 animate-pulse" />
                     </div>
-                    <div className="h-3 w-16 bg-black/[0.04] rounded animate-pulse" />
+                    <div className="h-3 w-16 bg-[#1E1C1A]/[0.04] rounded animate-pulse" />
                   </div>
                 ))}
               </div>
             ) : orders.length === 0 ? (
               <div className="py-16 text-center">
-                <div className="w-10 h-10 rounded-2xl bg-black/[0.04] flex items-center justify-center mx-auto mb-3">
-                  <ShoppingBasket className="w-5 h-5 text-black/15" />
+                <div className="w-10 h-10 rounded-2xl bg-[#1E1C1A]/[0.04] flex items-center justify-center mx-auto mb-3">
+                  <ShoppingBasket className="w-5 h-5 text-[#1E1C1A]/15" />
                 </div>
-                <p className="text-sm text-[#1A1714]/30 font-label">No orders yet</p>
+                <p className="text-sm text-[#3A3530]/40">No orders yet</p>
               </div>
             ) : (
-              <div className="divide-y divide-black/[0.04]">
+              <div className="divide-y divide-[#1E1C1A]/[0.04]">
                 {orders.map((order) => {
                   const c = STATUS_COLORS[order.status] ?? STATUS_COLORS.placed
                   const itemCount = order.items?.length ?? 0
@@ -423,32 +423,32 @@ export default function AdminDashboardPage() {
                     <Link
                       key={order.id}
                       href={`/admin/orders?q=${encodeURIComponent(order.order_number)}`}
-                      className="flex items-center gap-3 px-5 py-3 hover:bg-black/[0.015] transition-colors duration-150 group"
+                      className="flex items-center gap-3 px-5 py-3 hover:bg-[#1E1C1A]/[0.015] transition-colors duration-150 group"
                     >
                       <div className={`w-[3px] h-9 rounded-full shrink-0 ${c.dot}`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[13px] font-bold text-[#0F0F0F] font-label group-hover:text-primary transition-colors duration-150">
+                          <span className="text-[13px] font-semibold text-[#1E1C1A] group-hover:text-primary transition-colors duration-150">
                             {order.order_number}
                           </span>
                           <StatusBadge status={order.status} />
                           {itemCount > 0 && (
-                            <span className="text-[9px] bg-black/[0.04] text-[#1A1714]/35 px-1.5 py-0.5 rounded-full font-label hidden sm:inline">
+                            <span className="text-[9px] bg-[#1E1C1A]/[0.04] text-[#3A3530]/40 px-1.5 py-0.5 rounded-full hidden sm:inline">
                               {itemCount} {itemCount === 1 ? 'item' : 'items'}
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-[#1A1714]/35 font-label truncate">
+                        <p className="text-[11px] text-[#3A3530]/40 truncate">
                           {order.customer_name} · {order.district}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-[13px] font-bold text-[#1A1714]/70 font-label">
+                        <p className="text-[13px] font-semibold text-[#3A3530]/80">
                           NPR {order.total.toLocaleString()}
                         </p>
-                        <div className="flex items-center gap-1 text-[#1A1714]/20 justify-end mt-0.5">
+                        <div className="flex items-center gap-1 text-[#3A3530]/30 justify-end mt-0.5">
                           <Clock className="w-3 h-3" />
-                          <span className="text-[10px] font-label tabular-nums">{timeAgo(order.created_at)}</span>
+                          <span className="text-[10px] tabular-nums">{timeAgo(order.created_at)}</span>
                         </div>
                       </div>
                     </Link>
@@ -460,18 +460,18 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Live Audit */}
-        <div className="bg-[#0F0F0F] border border-white/[0.06] rounded-2xl overflow-hidden flex flex-col">
+        <div className="bg-[#1E1C1A] border border-white/[0.06] rounded-2xl overflow-hidden flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-xl bg-white/[0.07] flex items-center justify-center">
                 <Activity className="w-3.5 h-3.5 text-white/50" />
               </div>
-              <h3 className="text-[13px] font-bold text-white font-label">Live Audit</h3>
+              <h3 className="text-[13px] font-semibold text-white">Live Audit</h3>
             </div>
             <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold font-label text-emerald-400">Live</span>
+              <span className="text-[10px] font-bold text-emerald-400">Live</span>
             </div>
           </div>
 
@@ -482,8 +482,8 @@ export default function AdminDashboardPage() {
                 <div className="w-10 h-10 rounded-2xl bg-white/[0.05] flex items-center justify-center mb-3">
                   <Zap className="w-5 h-5 text-white/15" />
                 </div>
-                <p className="text-[13px] font-semibold text-white/25 font-label">Waiting for activity</p>
-                <p className="text-[11px] text-white/15 font-body mt-1">Events appear here in real-time</p>
+                <p className="text-[13px] font-semibold text-white/30">Waiting for activity</p>
+                <p className="text-[11px] text-white/20 mt-1">Events appear here in real-time</p>
               </div>
             ) : (
               <div className="p-3 space-y-px">
@@ -500,7 +500,7 @@ export default function AdminDashboardPage() {
                         <Icon className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-white/75 font-label leading-snug">
+                        <p className="text-[12px] font-medium text-white/80 leading-snug">
                           {entry.type === 'new_order' ? (
                             <>New order · <span className="text-white">{entry.customerName.split(' ')[0]}</span></>
                           ) : (
@@ -508,22 +508,22 @@ export default function AdminDashboardPage() {
                           )}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <span className="text-[10px] text-white/25 font-label">{entry.orderNumber}</span>
+                          <span className="text-[10px] text-white/30">{entry.orderNumber}</span>
                           {entry.amount != null && (
                             <>
                               <span className="text-white/10">·</span>
-                              <span className="text-[10px] text-white/30 font-label">NPR {entry.amount.toLocaleString()}</span>
+                              <span className="text-[10px] text-white/40">NPR {entry.amount.toLocaleString()}</span>
                             </>
                           )}
                           {entry.district && (
                             <>
                               <span className="text-white/10">·</span>
-                              <span className="text-[10px] text-white/20 font-label">{entry.district}</span>
+                              <span className="text-[10px] text-white/30">{entry.district}</span>
                             </>
                           )}
                         </div>
                       </div>
-                      <span className="text-[10px] text-white/20 font-label shrink-0 mt-0.5 tabular-nums">
+                      <span className="text-[10px] text-white/30 shrink-0 mt-0.5 tabular-nums">
                         {timeAgo(entry.ts)}
                       </span>
                     </div>
@@ -538,9 +538,9 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Users className="w-3 h-3 text-white/20" />
-                  <span className="text-[10px] text-white/20 font-label">{audit.length} events logged</span>
+                  <span className="text-[10px] text-white/30">{audit.length} events logged</span>
                 </div>
-                <span className="text-[10px] text-white/15 font-label">auto-updating</span>
+                <span className="text-[10px] text-white/20">auto-updating</span>
               </div>
             </div>
           )}

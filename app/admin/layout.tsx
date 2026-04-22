@@ -1,11 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Poppins } from 'next/font/google'
 import { AdminSidebar }      from '@/components/admin/AdminSidebar'
 import { AdminHeader }       from '@/components/admin/AdminHeader'
 import { ToastContainer }    from '@/components/shared/Toast'
 import { AdminLogin, useAdminAuth } from '@/components/admin/AdminLogin'
 import { PageTransition }    from '@/components/shared/PageTransition'
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  variable: '--font-poppins',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+})
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { authed, setAuthed } = useAdminAuth()
@@ -19,11 +27,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (authed === null) return null
 
   if (!authed) {
-    return <AdminLogin onAuth={() => setAuthed(true)} />
+    return (
+      <div className={poppins.variable}>
+        <AdminLogin onAuth={() => setAuthed(true)} />
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F2EF] font-body">
+    <div className={`${poppins.variable} min-h-screen bg-[#F7F5F2] font-[family-name:var(--font-poppins)]`}>
       <ToastContainer />
       <AdminSidebar mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
       <AdminHeader onMenuOpen={() => setSidebarOpen(true)} />

@@ -2,10 +2,12 @@
 
 import Image from 'next/image'
 import { Heart, ShoppingCart } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { Product } from '@/lib/types'
 import { useCartStore }     from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
 import { useSessionStore }  from '@/store/sessionStore'
+import { useRef, useState } from 'react'
 
 interface ProductCardProps {
   product: Product
@@ -24,6 +26,19 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   const discount      = product.sale_price
     ? Math.round(((product.price - product.sale_price) / product.price) * 100)
     : null
+
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return
+    const rect = cardRef.current.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+    setTilt({ x: y * -8, y: x * 8 })
+  }
+
+  const handleMouseLeave = () => setTilt({ x: 0, y: 0 })
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -55,30 +70,49 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   }
 
   return (
-    <div className="group cursor-pointer" onClick={() => onClick(product)}>
-      {/* Image container */}
-      <div className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden relative transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-lg group-hover:border-outline-variant/10">
+    <div
+      ref={cardRef}
+      className="group cursor-pointer"
+      onClick={() => onClick(product)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        perspective: '800px',
+      }}
+    >
+      {/* Image container — 3D tilt */}
+      <motion.div
+        className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/15 rounded-2xl overflow-hidden relative shadow-float"
+        animate={{
+          rotateX: tilt.x,
+          rotateY: tilt.y,
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        whileHover={{ y: -6, boxShadow: '0 20px 50px rgba(26, 23, 20, 0.12)' }}
+      >
         {/* Badges */}
-        <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5">
           {product.stock <= 0 ? (
-            <span className="bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full font-label backdrop-blur-sm">
+            <span className="bg-on-surface/80 backdrop-blur-sm text-white text-[10px] px-2.5 py-0.5 rounded-full font-label font-semibold">
               Sold Out
             </span>
           ) : discount ? (
-            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full font-label shadow-sm">
+            <span className="bg-accent-warm/90 backdrop-blur-sm text-on-accent-warm text-[10px] font-bold px-2.5 py-0.5 rounded-full font-label shadow-sm">
               -{discount}%
             </span>
           ) : null}
         </div>
 
         {/* Wishlist */}
-        <button
+        <motion.button
           onClick={toggleWish}
           aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
-          className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/85 backdrop-blur-md rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all duration-200 hover:scale-105 active:scale-95"
+          className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-white/70 backdrop-blur-lg rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all duration-300"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
-          <Heart className={`w-4 h-4 transition-all ${isWished ? 'fill-red-500 text-red-500' : 'text-on-surface-variant'}`} />
-        </button>
+          <Heart className={`w-4 h-4 transition-all duration-300 ${isWished ? 'fill-red-500 text-red-500 scale-110' : 'text-on-surface-variant'}`} />
+        </motion.button>
 
         {/* Product image */}
         {firstImage ? (
@@ -86,32 +120,35 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             src={firstImage}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-cover transition-transform duration-700 ease-out-expo group-hover:scale-108"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-surface-container text-5xl font-headline text-on-surface-variant/20">
+          <div className="w-full h-full flex items-center justify-center bg-surface-container text-5xl font-display text-on-surface-variant/15">
             {product.name.charAt(0)}
           </div>
         )}
 
-        {/* Quick add — slides up on hover */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]">
+        {/* Quick add — slides up on hover (glassmorphic) */}
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-spring">
           <button
             onClick={handleAddToCart}
             disabled={defaultStock <= 0}
-            className="w-full py-3 bg-primary/90 backdrop-blur-sm text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-primary/90 backdrop-blur-md text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             {defaultStock <= 0 ? 'Out of Stock' : 'Quick Add'}
           </button>
         </div>
-      </div>
+
+        {/* Hover shine sweep */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-br from-white/0 via-white/[0.05] to-white/0 pointer-events-none" />
+      </motion.div>
 
       {/* Info */}
-      <div className="mt-2.5 px-0.5">
+      <div className="mt-3 px-0.5">
         {product.category?.name && (
-          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant/50 mb-0.5 font-label truncate">
+          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant/40 mb-0.5 font-label truncate">
             {product.category.name}
           </p>
         )}
@@ -124,13 +161,14 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
               NPR {displayPrice.toLocaleString()}
             </span>
             {product.sale_price && (
-              <span className="text-[11px] text-on-surface-variant/40 line-through hidden sm:inline">
+              <span className="text-[11px] text-on-surface-variant/35 line-through hidden sm:inline">
                 {product.price.toLocaleString()}
               </span>
             )}
           </div>
           {defaultStock > 0 && defaultStock < 5 && (
-            <span className="text-[10px] text-amber-600 font-label whitespace-nowrap shrink-0">
+            <span className="flex items-center gap-1 text-[10px] text-accent-warm font-label whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-warm animate-breathe" />
               {defaultStock} left
             </span>
           )}

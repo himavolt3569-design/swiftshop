@@ -42,7 +42,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
   }
 
   const sidebarContent = (
-    <div className="h-full flex flex-col bg-[#0F0F0F]">
+    <div className="h-full flex flex-col bg-[#1E1C1A]">
 
       {/* Logo */}
       <div className="px-5 pt-6 pb-5 flex items-center justify-between border-b border-white/[0.06]">
@@ -98,7 +98,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
                         }`}
                         strokeWidth={active ? 2.2 : 1.7}
                       />
-                      <span className="flex-1 font-label">{lbl}</span>
+                      <span className="flex-1">{lbl}</span>
                       {badge && (
                         <span className="text-[9px] bg-primary text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide shadow-sm shadow-primary/40">
                           {badge}

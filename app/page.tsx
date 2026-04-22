@@ -7,14 +7,12 @@ import { Hero }                 from '@/components/storefront/Hero'
 import { CategoryBar }          from '@/components/storefront/CategoryBar'
 import { ProductGrid, LatestArrivalsSection } from '@/components/storefront/ProductGrid'
 import { LiveFeedTicker }       from '@/components/storefront/LiveFeedTicker'
-import { CheckoutSection }      from '@/components/storefront/CheckoutSection'
-import { OrderTrackingSection } from '@/components/storefront/OrderTrackingSection'
 import { Footer }               from '@/components/storefront/Footer'
 import { CartDrawer }           from '@/components/storefront/CartDrawer'
 import { WishlistDrawer }       from '@/components/storefront/WishlistDrawer'
 import { AddToCartPopup }       from '@/components/storefront/AddToCartPopup'
 import { MobileCheckoutBar }    from '@/components/storefront/MobileCheckoutBar'
-import { CustomCursor }         from '@/components/shared/CustomCursor'
+
 import { ToastContainer }       from '@/components/shared/Toast'
 import { useCartStore }         from '@/store/cartStore'
 import { useWishlistStore }     from '@/store/wishlistStore'
@@ -78,15 +76,13 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
 
   return (
     <>
-      <CustomCursor />
       <ToastContainer />
       <CartDrawer
         open={cartOpen}
         onClose={() => setCartOpen(false)}
         onCheckout={() => {
           setCartOpen(false)
-          const el = document.getElementById('checkout')
-          if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' })
+          router.push('/checkout')
         }}
       />
       <WishlistDrawer open={wishlistOpen} onClose={() => setWishlistOpen(false)} />
@@ -108,9 +104,7 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
       />
       <MobileCheckoutBar
         onCheckout={() => {
-          setCartOpen(false)
-          const el = document.getElementById('checkout')
-          if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' })
+          router.push('/checkout')
         }}
       />
       <OfflineBanner show={offline} />
@@ -137,10 +131,6 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
         />
 
         <LiveFeedTicker />
-
-        <CheckoutSection />
-
-        <OrderTrackingSection />
       </main>
 
       <Footer />

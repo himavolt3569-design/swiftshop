@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { ShoppingBag, ChevronLeft, ChevronRight, Heart, Flame, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { supabase }           from '@/lib/supabase'
 import { Product }            from '@/lib/types'
 import { ProductCard }        from './ProductCard'
@@ -10,6 +11,7 @@ import { ProductDetailModal } from './ProductDetailModal'
 import { useWishlistStore }   from '@/store/wishlistStore'
 import { useCartStore }       from '@/store/cartStore'
 import { useSessionStore }    from '@/store/sessionStore'
+import { gsap, ScrollTrigger } from '@/lib/gsap'
 
 interface ProductGridProps {
   activeCategoryId: string | null
@@ -64,71 +66,75 @@ function LatestArrivalsCard({
   }
 
   return (
-    <div
+    <motion.div
       onClick={() => onSelect(product)}
       className="w-[185px] md:w-[220px] lg:w-[240px] shrink-0 snap-start cursor-pointer group"
+      whileHover={{ y: -4 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     >
-      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg">
+      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-depth">
         {/* Image */}
         {img ? (
           <Image
             src={img}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className="object-cover transition-transform duration-700 ease-out-expo group-hover:scale-110"
             sizes="240px"
           />
         ) : (
-          <div className="w-full h-full bg-surface-container flex items-center justify-center text-5xl font-headline text-on-surface-variant/20">
+          <div className="w-full h-full bg-surface-container flex items-center justify-center text-5xl font-display text-on-surface-variant/15">
             {product.name.charAt(0)}
           </div>
         )}
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
-          <span className="bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow">
+          <span className="bg-primary/90 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-lg">
             New
           </span>
           {discount && (
-            <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow">
+            <span className="bg-accent-warm/90 backdrop-blur-sm text-on-accent-warm text-[9px] font-bold px-2.5 py-0.5 rounded-full shadow-lg">
               -{discount}%
             </span>
           )}
         </div>
 
         {/* Wishlist */}
-        <button
+        <motion.button
           onClick={toggleWish}
-          className="absolute top-2.5 right-2.5 w-7 h-7 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/40 transition-all z-10"
+          className="absolute top-2.5 right-2.5 w-8 h-8 bg-white/20 backdrop-blur-lg rounded-full flex items-center justify-center hover:bg-white/40 transition-all z-10"
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.9 }}
         >
-          <Heart className={`w-3.5 h-3.5 transition-colors ${isWished ? 'fill-red-400 text-red-400' : 'text-white'}`} />
-        </button>
+          <Heart className={`w-3.5 h-3.5 transition-all duration-300 ${isWished ? 'fill-red-400 text-red-400' : 'text-white'}`} />
+        </motion.button>
 
         {/* Text overlay — bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-3.5 translate-y-0 group-hover:-translate-y-10 transition-transform duration-300">
-          <p className="text-white/60 text-[10px] uppercase tracking-wider font-label mb-0.5">
+        <div className="absolute bottom-0 left-0 right-0 p-3.5 translate-y-0 group-hover:-translate-y-11 transition-transform duration-400 ease-spring">
+          <p className="text-white/50 text-[10px] uppercase tracking-wider font-label mb-0.5">
             {product.category?.name ?? ''}
           </p>
-          <p className="text-white text-sm font-bold font-body leading-snug line-clamp-2 mb-1.5">
+          <p className="text-white text-sm font-bold font-display leading-snug line-clamp-2 mb-1.5">
             {product.name}
           </p>
           <div className="flex items-baseline gap-2">
             <span className="text-white text-sm font-bold">NPR {price.toLocaleString()}</span>
             {product.sale_price && (
-              <span className="text-white/50 text-xs line-through">NPR {product.price.toLocaleString()}</span>
+              <span className="text-white/40 text-xs line-through">NPR {product.price.toLocaleString()}</span>
             )}
           </div>
         </div>
 
         {/* Quick Add — slides up on hover */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-10">
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-spring z-10">
           <button
             onClick={handleAddToCart}
             disabled={defaultStock <= 0}
-            className="w-full py-3 bg-primary/95 backdrop-blur-sm text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-primary/90 backdrop-blur-md text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             {defaultStock <= 0 ? 'Out of Stock' : 'Quick Add'}
@@ -136,9 +142,9 @@ function LatestArrivalsCard({
         </div>
 
         {/* Hover shine */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-tr from-white/0 via-white/[0.05] to-white/0 pointer-events-none" />
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-tr from-white/0 via-white/[0.05] to-white/0 pointer-events-none" />
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -159,6 +165,7 @@ export function LatestArrivalsSection() {
   const [selected, setSelected] = useState<Product | null>(null)
   const [scrollPct, setScrollPct] = useState(0)
   const rowRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
 
   const selectProduct = (p: Product) => { pushProductUrl(p.slug); setSelected(p) }
   const closeModal    = () => { clearProductUrl(); setSelected(null) }
@@ -172,6 +179,25 @@ export function LatestArrivalsSection() {
       .limit(14)
       .then(({ data }) => { if (data) setProducts(data as Product[]); setLoading(false) })
   }, [])
+
+  // GSAP scroll-triggered entrance
+  useEffect(() => {
+    if (!sectionRef.current || loading) return
+    const ctx = gsap.context(() => {
+      gsap.from('.arrivals-header', {
+        y: 30,
+        opacity: 0,
+        duration: 0.7,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 85%',
+          once: true,
+        },
+      })
+    }, sectionRef)
+    return () => ctx.revert()
+  }, [loading])
 
   useEffect(() => {
     const el = rowRef.current
@@ -190,55 +216,56 @@ export function LatestArrivalsSection() {
   }
 
   const scrollToCheckout = () => {
-    const el = document.getElementById('checkout')
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' })
+    window.location.href = '/checkout'
   }
 
   return (
-    <section className="py-10 max-w-screen-2xl mx-auto">
+    <section ref={sectionRef} className="py-12 max-w-screen-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 md:px-8 mb-6">
+      <div className="arrivals-header flex items-center justify-between px-6 md:px-8 mb-7">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <Flame className="w-3.5 h-3.5 text-primary" />
-            <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-label font-bold">Just Dropped</span>
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Flame className="w-3 h-3 text-primary" />
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-primary font-display font-bold">Just Dropped</span>
           </div>
-          <h3 className="font-headline text-2xl md:text-3xl font-bold text-on-surface leading-tight">
+          <h3 className="font-display text-2xl md:text-3xl font-bold text-on-surface leading-tight">
             New Arrivals
           </h3>
         </div>
 
         {/* Scroll progress track + arrow buttons */}
         <div className="flex items-center gap-3">
-          {/* Progress bar */}
           {!loading && products.length > 0 && (
-            <div className="hidden sm:block w-28 h-[3px] bg-outline-variant/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-150"
-                style={{ width: `${Math.max(8, scrollPct * 100)}%` }}
+            <div className="hidden sm:block w-28 h-[3px] bg-outline-variant/15 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                animate={{ width: `${Math.max(8, scrollPct * 100)}%` }}
+                transition={{ duration: 0.15 }}
               />
             </div>
           )}
           <button
             onClick={() => scroll('left')}
-            className="w-9 h-9 rounded-full border border-outline-variant/30 bg-surface-container flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-200"
+            className="w-10 h-10 rounded-full border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 shadow-float hover:shadow-glow-sm"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={() => scroll('right')}
-            className="w-9 h-9 rounded-full border border-outline-variant/30 bg-surface-container flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-200"
+            className="w-10 h-10 rounded-full border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 shadow-float hover:shadow-glow-sm"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Scroll row — no snap so clicks always register */}
+      {/* Scroll row */}
       {loading ? (
         <div className="flex gap-3 px-6 md:px-8">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="w-[200px] md:w-[240px] shrink-0 aspect-[3/4] rounded-2xl bg-surface-container animate-pulse" />
+            <div key={i} className="w-[200px] md:w-[240px] shrink-0 aspect-[3/4] skeleton-shimmer" />
           ))}
         </div>
       ) : (
@@ -253,7 +280,6 @@ export function LatestArrivalsSection() {
         </div>
       )}
 
-      {/* Product detail modal */}
       <ProductDetailModal
         product={selected}
         onClose={closeModal}
@@ -291,14 +317,33 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
   const [fetching,  setFetching]  = useState(false)
   const [selected,  setSelected]  = useState<Product | null>(initialProduct ?? null)
   const [activeCategory, setActiveCategory] = useState(activeCategoryId)
+  const sectionRef = useRef<HTMLElement>(null)
 
   const selectProduct = (p: Product) => { pushProductUrl(p.slug); setSelected(p) }
   const closeModal    = () => { clearProductUrl(); setSelected(null) }
 
-  // Open initial product immediately (shared link scenario)
   const initialProductRef = useRef(initialProduct)
   useEffect(() => {
     if (initialProductRef.current) setSelected(initialProductRef.current)
+  }, [])
+
+  // GSAP scroll reveal for grid header
+  useEffect(() => {
+    if (!sectionRef.current) return
+    const ctx = gsap.context(() => {
+      gsap.from('.grid-header', {
+        y: 25,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.grid-header',
+          start: 'top 90%',
+          once: true,
+        },
+      })
+    }, sectionRef)
+    return () => ctx.revert()
   }, [])
 
   const fetchProducts = useCallback(async (catId: string | null, pageNum: number, append = false) => {
@@ -348,20 +393,19 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
   const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loading && !fetching)
 
   const scrollToCheckout = () => {
-    const el = document.getElementById('checkout')
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' })
+    window.location.href = '/checkout'
   }
 
   return (
-    <section id="products" className="py-8 px-6 md:px-8 max-w-screen-2xl mx-auto">
+    <section ref={sectionRef} id="products" className="py-10 px-6 md:px-8 max-w-screen-2xl mx-auto">
       {/* Grid header */}
-      <div className="mb-6 flex items-center gap-3 border-b border-outline-variant/20 pb-4">
-        <span className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/40 font-label">Browse</span>
-        <h2 className="font-headline text-xl md:text-2xl font-bold text-on-surface">
+      <div className="grid-header mb-7 flex items-center gap-3 border-b border-outline-variant/15 pb-5">
+        <span className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/35 font-display font-semibold">Browse</span>
+        <h2 className="font-display text-xl md:text-2xl font-bold text-on-surface">
           {activeCategory ? (products[0]?.category?.name ?? 'All Products') : 'All Products'}
         </h2>
         {products.length > 0 && (
-          <span className="ml-auto text-xs text-on-surface-variant/40 font-label">{products.length}+ items</span>
+          <span className="ml-auto text-xs text-on-surface-variant/35 font-label">{products.length}+ items</span>
         )}
       </div>
 
@@ -369,19 +413,19 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
       {error && (
         <div className="py-12 text-center text-on-surface-variant font-body text-sm">
           Could not load products.{' '}
-          <button onClick={() => fetchProducts(activeCategory, 0)} className="text-primary underline">Retry</button>
+          <button onClick={() => fetchProducts(activeCategory, 0)} className="text-primary underline font-semibold">Retry</button>
         </div>
       )}
 
-      {/* Loading skeletons */}
+      {/* Loading skeletons — shimmer */}
       {loading && products.length === 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="aspect-[3/4] bg-surface-container rounded-xl mb-3" />
-              <div className="h-3 bg-surface-container rounded mb-2 w-1/2" />
-              <div className="h-4 bg-surface-container rounded mb-2 w-3/4" />
-              <div className="h-3 bg-surface-container rounded w-1/3" />
+            <div key={i}>
+              <div className="aspect-[3/4] skeleton-shimmer mb-3" />
+              <div className="h-3 skeleton-shimmer mb-2 w-1/2" />
+              <div className="h-4 skeleton-shimmer mb-2 w-3/4" />
+              <div className="h-3 skeleton-shimmer w-1/3" />
             </div>
           ))}
         </div>
@@ -390,16 +434,25 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
       {/* Empty state */}
       {!loading && products.length === 0 && !error && (
         <div className="py-24 text-center">
-          <ShoppingBag className="w-12 h-12 text-on-surface-variant/20 mx-auto mb-4" />
-          <p className="text-on-surface-variant/60 font-body text-base">No products in this category yet.</p>
+          <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-4">
+            <ShoppingBag className="w-8 h-8 text-on-surface-variant/20" />
+          </div>
+          <p className="text-on-surface-variant/50 font-body text-base">No products in this category yet.</p>
         </div>
       )}
 
       {/* Product grid */}
       {products.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} onClick={selectProduct} />
+          {products.map((product, i) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: Math.min(i * 0.05, 0.4), ease: [0.22, 1, 0.36, 1] }}
+            >
+              <ProductCard product={product} onClick={selectProduct} />
+            </motion.div>
           ))}
         </div>
       )}
@@ -409,20 +462,19 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
 
       {/* Loading more */}
       {fetching && (
-        <div className="mt-10 flex flex-col items-center gap-3">
-          <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-on-surface-variant/50 font-label">Loading more…</p>
+        <div className="mt-12 flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-on-surface-variant/40 font-label">Loading more…</p>
         </div>
       )}
 
       {/* End of list */}
       {!hasMore && products.length >= PAGE_SIZE && !loading && (
-        <p className="text-center text-xs text-on-surface-variant/30 font-label mt-12 tracking-widest uppercase">
+        <p className="text-center text-xs text-on-surface-variant/25 font-display font-medium mt-14 tracking-widest uppercase">
           · You've seen it all ·
         </p>
       )}
 
-      {/* Product detail modal */}
       <ProductDetailModal
         product={selected}
         onClose={closeModal}

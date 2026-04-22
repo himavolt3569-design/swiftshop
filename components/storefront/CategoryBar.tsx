@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { Category } from '@/lib/types'
 
@@ -15,6 +16,7 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
   const [activeMain, setActiveMain] = useState<string | null>(null)
   const router       = useRouter()
   const searchParams = useSearchParams()
+  const scrollRef    = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -37,7 +39,6 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
     const cat = searchParams.get('category')
     setActive(cat)
     onCategoryChange?.(cat)
-    // Determine which main category this belongs to
     if (cat) {
       const parent = categories.find(
         (m) => m.id === cat || m.subcategories?.some((s) => s.id === cat)
@@ -62,50 +63,57 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
     ? categories.find((c) => c.id === activeMain)?.subcategories ?? []
     : []
 
+  const allItems = [{ id: null, name: 'All' }, ...categories]
+
   return (
-    <div className="sticky top-16 z-40 bg-background/90 backdrop-blur-sm border-b border-on-background/5">
+    <div className="sticky top-16 z-40 glass border-b border-outline-variant/10">
       {/* Main category row */}
-      <div className="px-6 py-3 overflow-x-auto no-scrollbar">
-        <div className="max-w-screen-2xl mx-auto flex gap-3 relative">
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background/90 to-transparent md:hidden" />
+      <div className="px-4 md:px-6 py-3 overflow-x-auto no-scrollbar" ref={scrollRef}>
+        <div className="max-w-screen-2xl mx-auto flex gap-2 relative">
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background/80 to-transparent md:hidden z-10" />
 
-          <button
-            onClick={() => select(null, null)}
-            className={`px-5 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${
-              active === null
-                ? 'bg-primary text-white shadow-sm shadow-primary/30'
-                : 'bg-surface-container text-on-surface hover:bg-surface-container-high hover:text-on-surface'
-            }`}
-          >
-            All
-          </button>
-
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => select(cat.id, cat.id)}
-              className={`px-5 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${
-                activeMain === cat.id || active === cat.id
-                  ? 'bg-primary text-white shadow-sm shadow-primary/30'
-                  : 'bg-surface-container text-on-surface hover:bg-surface-container-high hover:text-on-surface'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {allItems.map((cat) => {
+            const isActive = cat.id === null ? active === null : (activeMain === cat.id || active === cat.id)
+            return (
+              <button
+                key={cat.id ?? 'all'}
+                onClick={() => select(cat.id, cat.id)}
+                className={`relative px-5 py-2 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-300 ${
+                  isActive
+                    ? 'text-white'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/60'
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="categoryPill"
+                    className="absolute inset-0 rounded-full gradient-primary shadow-glow-sm"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{cat.name}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {/* Sub-category row — only shown when a main with subs is active */}
+      {/* Sub-category row */}
       {activeSubs.length > 0 && (
-        <div className="px-6 pb-2.5 overflow-x-auto no-scrollbar border-t border-on-background/[0.04]">
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          className="px-4 md:px-6 pb-2.5 overflow-x-auto no-scrollbar border-t border-outline-variant/[0.06]"
+        >
           <div className="max-w-screen-2xl mx-auto flex gap-2 pt-2">
             <button
               onClick={() => select(activeMain, activeMain)}
-              className={`px-4 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-200 ${
+              className={`relative px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-300 ${
                 active === activeMain
                   ? 'bg-on-surface text-background shadow-sm'
-                  : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+                  : 'bg-surface-container-high/60 text-on-surface-variant hover:bg-surface-container-highest'
               }`}
             >
               All {categories.find((c) => c.id === activeMain)?.name}
@@ -114,17 +122,17 @@ export function CategoryBar({ onCategoryChange }: CategoryBarProps) {
               <button
                 key={sub.id}
                 onClick={() => select(sub.id, activeMain)}
-                className={`px-4 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-200 ${
+                className={`relative px-4 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-300 ${
                   active === sub.id
                     ? 'bg-on-surface text-background shadow-sm'
-                    : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+                    : 'bg-surface-container-high/60 text-on-surface-variant hover:bg-surface-container-highest'
                 }`}
               >
                 {sub.name}
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   )
