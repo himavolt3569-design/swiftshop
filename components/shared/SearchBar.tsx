@@ -12,9 +12,10 @@ const MAX_RECENT = 5
 interface SearchBarProps {
   onSelect?: (product: Product) => void
   mobile?: boolean
+  variant?: 'default' | 'hero'
 }
 
-export function SearchBar({ onSelect, mobile = false }: SearchBarProps) {
+export function SearchBar({ onSelect, mobile = false, variant = 'default' }: SearchBarProps) {
   const [query,    setQuery]    = useState('')
   const [results,  setResults]  = useState<Product[]>([])
   const [open,     setOpen]     = useState(false)
@@ -103,15 +104,23 @@ export function SearchBar({ onSelect, mobile = false }: SearchBarProps) {
   }, {})
 
   return (
-    <div className={`relative ${mobile ? 'w-full' : 'w-full max-w-sm'}`}>
+    <div className={`relative ${mobile ? 'w-full' : 'w-full'} ${variant === 'hero' ? 'max-w-3xl mx-auto' : 'max-w-sm'}`}>
       {/* Input */}
-      <div className={`flex items-center gap-2.5 bg-surface-container-low border transition-all duration-200 rounded-xl px-3.5 py-2.5
-        ${open ? 'border-primary/40 ring-2 ring-primary/10 bg-background' : 'border-outline-variant/30 hover:border-outline-variant/60'}`}
+      <div className={`flex items-center transition-all duration-300
+        ${variant === 'hero' 
+          ? `bg-white shadow-ambient rounded-full p-1.5 pl-6 ${open ? 'shadow-lift ring-2 ring-primary/20' : ''}`
+          : `gap-2.5 bg-surface-container-low border rounded-full px-4 py-2.5 ${open ? 'border-primary/40 ring-2 ring-primary/10 bg-background' : 'border-outline-variant/30 hover:border-outline-variant/60'}`
+        }`}
       >
-        {loading
-          ? <Loader2 className="w-4 h-4 text-primary shrink-0 animate-spin" />
-          : <Search className="w-4 h-4 text-on-surface-variant shrink-0" />
-        }
+        {variant !== 'hero' && (
+          loading
+            ? <Loader2 className="w-4 h-4 text-primary shrink-0 animate-spin" />
+            : <Search className="w-4 h-4 text-on-surface-variant shrink-0" />
+        )}
+        
+        {variant === 'hero' && !loading && <Search className="w-5 h-5 text-on-surface-variant/40 shrink-0 mr-2" />}
+        {variant === 'hero' && loading && <Loader2 className="w-5 h-5 text-primary shrink-0 animate-spin mr-2" />}
+
         <input
           ref={inputRef}
           type="text"
@@ -119,21 +128,35 @@ export function SearchBar({ onSelect, mobile = false }: SearchBarProps) {
           onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search products…"
+          placeholder={variant === 'hero' ? "What are you looking for?" : "Search products…"}
           autoComplete="off"
-          className="search-input"
+          className={`search-input flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/40 font-display ${variant === 'hero' ? 'text-base md:text-lg px-2 py-3' : 'text-sm'}`}
           aria-label="Search products"
           aria-autocomplete="list"
           aria-expanded={showDropdown}
         />
-        {query && (
+        
+        {query && variant !== 'hero' && (
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
             aria-label="Clear"
-            className="shrink-0 text-on-surface-variant hover:text-on-surface transition-colors"
+            className="shrink-0 text-on-surface-variant hover:text-on-surface transition-colors ml-2"
           >
             <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+
+        {variant === 'hero' && (
+          <button 
+            type="button"
+            onClick={() => {
+               if (results.length > 0) handleSelect(results[0])
+            }}
+            className="w-12 h-12 rounded-full bg-primary hover:bg-primary-container text-white flex items-center justify-center transition-transform duration-200 active:scale-95 shrink-0 shadow-depth-sm ml-2"
+            aria-label="Submit search"
+          >
+            {query && !loading ? <ArrowRight className="w-5 h-5" /> : <Search className="w-5 h-5" />}
           </button>
         )}
       </div>
@@ -144,7 +167,7 @@ export function SearchBar({ onSelect, mobile = false }: SearchBarProps) {
           {/* Click-away */}
           <div className="fixed inset-0 z-40" onMouseDown={() => setOpen(false)} />
 
-          <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-outline-variant/25 rounded-2xl shadow-[0_8px_32px_rgba(30,27,24,0.12)] z-50 overflow-hidden max-h-[480px] flex flex-col">
+          <div className={`absolute left-0 right-0 mt-3 bg-background border border-outline-variant/25 rounded-3xl shadow-lift z-50 overflow-hidden max-h-[480px] flex flex-col ${variant === 'hero' ? 'top-full' : 'top-full'}`}>
 
             {/* No query — show recents */}
             {!query.trim() && recents.length > 0 && (

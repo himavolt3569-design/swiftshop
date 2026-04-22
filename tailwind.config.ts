@@ -95,11 +95,11 @@ const config: Config = {
       },
 
       fontFamily: {
-        display:  ['var(--font-outfit)', 'Outfit', 'system-ui', 'sans-serif'],
-        headline: ['var(--font-outfit)', 'Outfit', 'system-ui', 'sans-serif'],
+        display:  ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
+        headline: ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
+        body:     ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
+        label:    ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
         serif:    ['Playfair Display', 'serif'],
-        body:     ['Plus Jakarta Sans', 'sans-serif'],
-        label:    ['Plus Jakarta Sans', 'sans-serif'],
         logo:     ['Noto Serif', 'serif'],
       },
 
