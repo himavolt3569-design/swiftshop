@@ -4,8 +4,9 @@ import { Suspense, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header }               from '@/components/storefront/Header'
 import { Hero }                 from '@/components/storefront/Hero'
-import { CategoryBar }          from '@/components/storefront/CategoryBar'
 import { ProductGrid, LatestArrivalsSection } from '@/components/storefront/ProductGrid'
+import { ProductFilters, DEFAULT_FILTERS } from '@/components/storefront/ProductFilters'
+import type { FilterState }     from '@/components/storefront/ProductFilters'
 import { LiveFeedTicker }       from '@/components/storefront/LiveFeedTicker'
 import { Footer }               from '@/components/storefront/Footer'
 import { CartDrawer }           from '@/components/storefront/CartDrawer'
@@ -19,7 +20,6 @@ import { useWishlistStore }     from '@/store/wishlistStore'
 import { useSessionStore }      from '@/store/sessionStore'
 import { Product }              from '@/lib/types'
 
-// Error banner for Supabase unavailability
 function OfflineBanner({ show }: { show: boolean }) {
   if (!show) return null
   return (
@@ -36,10 +36,10 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
   const [offline,            setOffline]            = useState(false)
   const [cartOpen,           setCartOpen]           = useState(false)
   const [wishlistOpen,       setWishlistOpen]       = useState(false)
+  const [filters,            setFilters]            = useState<FilterState>(DEFAULT_FILTERS)
   const [cartPopup, setCartPopup] = useState<{ name: string; image?: string; price: number; category_id?: string | null; category_name?: string | null } | null>(null)
   const lastAdded = useCartStore((s) => s.lastAdded)
 
-  // Hydrate stores from localStorage (client only, avoids hydration mismatch)
   const hydrateCart     = useCartStore.persist?.rehydrate
   const hydrateWishlist = useWishlistStore.persist?.rehydrate
   const sessionId       = useSessionStore((s) => s.sessionId)
@@ -49,7 +49,6 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
     hydrateWishlist?.()
   }, [hydrateCart, hydrateWishlist])
 
-  // Show mobile popup when item is added to cart
   useEffect(() => {
     if (!lastAdded) return
     setCartPopup({
@@ -61,7 +60,6 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
     })
   }, [lastAdded])
 
-  // Sync session ID to stores
   useEffect(() => {
     if (!sessionId) return
     useCartStore.setState({ sessionId })
@@ -116,18 +114,17 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
       />
 
       <main className="pt-16">
-        <Hero />
+        <Hero onCategoryChange={setActiveCategoryId} />
 
         <LatestArrivalsSection />
 
-        <Suspense>
-          <CategoryBar onCategoryChange={setActiveCategoryId} />
-        </Suspense>
+        <ProductFilters filters={filters} onChange={setFilters} />
 
         <ProductGrid
           activeCategoryId={activeCategoryId}
           highlightedProductId={highlightedProduct}
           initialProduct={initialProduct}
+          filters={filters}
         />
 
         <LiveFeedTicker />

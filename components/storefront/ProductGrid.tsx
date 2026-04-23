@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { ShoppingBag, ChevronLeft, ChevronRight, Heart, Flame, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -12,14 +12,16 @@ import { useWishlistStore }   from '@/store/wishlistStore'
 import { useCartStore }       from '@/store/cartStore'
 import { useSessionStore }    from '@/store/sessionStore'
 import { gsap, ScrollTrigger } from '@/lib/gsap'
+import type { FilterState }   from './ProductFilters'
 
 interface ProductGridProps {
   activeCategoryId: string | null
   highlightedProductId?: string | null
   initialProduct?: Product | null
+  filters?: FilterState
 }
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 48
 
 // ── Latest Arrivals card — cinematic with Quick Add ───────────────────────────
 function LatestArrivalsCard({
@@ -68,8 +70,8 @@ function LatestArrivalsCard({
   return (
     <motion.div
       onClick={() => onSelect(product)}
-      className="w-[185px] md:w-[220px] lg:w-[240px] shrink-0 snap-start cursor-pointer group"
-      whileHover={{ y: -4 }}
+      className="w-[200px] md:w-[260px] lg:w-[280px] shrink-0 snap-start cursor-pointer group"
+      whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     >
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-depth">
@@ -220,9 +222,9 @@ export function LatestArrivalsSection() {
   }
 
   return (
-    <section ref={sectionRef} className="py-12 max-w-screen-2xl mx-auto">
+    <section ref={sectionRef} className="py-6 max-w-screen-2xl mx-auto">
       {/* Header */}
-      <div className="arrivals-header flex items-center justify-between px-6 md:px-8 mb-7">
+      <div className="arrivals-header flex items-center justify-between px-4 md:px-8 mb-5">
         <div>
           <div className="flex items-center gap-2.5 mb-2">
             <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -263,20 +265,20 @@ export function LatestArrivalsSection() {
 
       {/* Scroll row */}
       {loading ? (
-        <div className="flex gap-3 px-6 md:px-8">
+        <div className="flex gap-4 px-4 md:px-8">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="w-[200px] md:w-[240px] shrink-0 aspect-[3/4] skeleton-shimmer" />
+            <div key={i} className="w-[200px] md:w-[260px] lg:w-[280px] shrink-0 aspect-[3/4] skeleton-shimmer rounded-2xl" />
           ))}
         </div>
       ) : (
         <div
           ref={rowRef}
-          className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth px-6 md:px-8 pb-2"
+          className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth px-4 md:px-8 pb-2"
         >
           {products.map((product) => (
             <LatestArrivalsCard key={product.id} product={product} onSelect={selectProduct} />
           ))}
-          <div className="w-4 shrink-0" />
+          <div className="w-6 shrink-0" />
         </div>
       )}
 
@@ -299,7 +301,7 @@ function useInfiniteScroll(onLoadMore: () => void, enabled: boolean) {
     if (!el) return
     const observer = new IntersectionObserver(
       (entries) => { if (entries[0].isIntersecting) onLoadMore() },
-      { rootMargin: '200px' },
+      { rootMargin: '800px' },
     )
     observer.observe(el)
     return () => observer.disconnect()
@@ -308,7 +310,7 @@ function useInfiniteScroll(onLoadMore: () => void, enabled: boolean) {
 }
 
 // ── Main grid ─────────────────────────────────────────────────────────────────
-export function ProductGrid({ activeCategoryId, highlightedProductId, initialProduct }: ProductGridProps) {
+export function ProductGrid({ activeCategoryId, highlightedProductId, initialProduct, filters }: ProductGridProps) {
   const [products,  setProducts]  = useState<Product[]>([])
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState(false)
@@ -327,36 +329,30 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
     if (initialProductRef.current) setSelected(initialProductRef.current)
   }, [])
 
-  // GSAP scroll reveal for grid header
-  useEffect(() => {
-    if (!sectionRef.current) return
-    const ctx = gsap.context(() => {
-      gsap.from('.grid-header', {
-        y: 25,
-        opacity: 0,
-        duration: 0.6,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.grid-header',
-          start: 'top 90%',
-          once: true,
-        },
-      })
-    }, sectionRef)
-    return () => ctx.revert()
-  }, [])
-
-  const fetchProducts = useCallback(async (catId: string | null, pageNum: number, append = false) => {
+  const fetchProducts = useCallback(async (catId: string | null, pageNum: number, append = false, f?: FilterState) => {
     if (pageNum === 0) setLoading(true); else setFetching(true)
     setError(false)
     try {
+      // Determine sort
+      const sortBy = f?.sortBy ?? 'newest'
+      let orderCol = 'created_at'
+      let orderAsc = false
+      if (sortBy === 'price_asc') { orderCol = 'price'; orderAsc = true }
+      else if (sortBy === 'price_desc') { orderCol = 'price'; orderAsc = false }
+      else if (sortBy === 'on_sale') { orderCol = 'sale_price'; orderAsc = true }
+
       let query = supabase
         .from('products')
         .select('*, category:categories(id, name, slug), images, sizes')
         .eq('is_active', true)
-        .order('created_at', { ascending: false })
+        .order(orderCol, { ascending: orderAsc })
         .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1)
+
       if (catId) query = query.eq('category_id', catId)
+      if (f?.priceMin != null) query = query.gte('price', f.priceMin)
+      if (f?.priceMax != null) query = query.lte('price', f.priceMax)
+      if (f?.onSaleOnly) query = query.not('sale_price', 'is', null)
+
       const { data, error: err } = await query
       if (err) throw err
       const items = (data as Product[]) ?? []
@@ -370,11 +366,12 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
     }
   }, [])
 
+  // Refetch when category or filters change
   useEffect(() => {
     setPage(0)
     setActiveCategory(activeCategoryId)
-    fetchProducts(activeCategoryId, 0, false)
-  }, [activeCategoryId, fetchProducts])
+    fetchProducts(activeCategoryId, 0, false, filters)
+  }, [activeCategoryId, filters, fetchProducts])
 
   useEffect(() => {
     if (!highlightedProductId) return
@@ -387,27 +384,25 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
     if (fetching || loading || !hasMore) return
     const next = page + 1
     setPage(next)
-    fetchProducts(activeCategory, next, true)
-  }, [fetching, loading, hasMore, page, activeCategory, fetchProducts])
+    fetchProducts(activeCategory, next, true, filters)
+  }, [fetching, loading, hasMore, page, activeCategory, fetchProducts, filters])
 
   const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loading && !fetching)
+
+  // Client-side size filter (sizes is JSONB)
+  const displayed = useMemo(() => {
+    if (!filters?.sizes?.length) return products
+    return products.filter((p) =>
+      p.sizes?.some((s) => filters.sizes.includes(s.size))
+    )
+  }, [products, filters?.sizes])
 
   const scrollToCheckout = () => {
     window.location.href = '/checkout'
   }
 
   return (
-    <section ref={sectionRef} id="products" className="py-10 px-6 md:px-8 max-w-screen-2xl mx-auto">
-      {/* Grid header */}
-      <div className="grid-header mb-7 flex items-center gap-3 border-b border-outline-variant/15 pb-5">
-        <span className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/35 font-display font-semibold">Browse</span>
-        <h2 className="font-display text-xl md:text-2xl font-bold text-on-surface">
-          {activeCategory ? (products[0]?.category?.name ?? 'All Products') : 'All Products'}
-        </h2>
-        {products.length > 0 && (
-          <span className="ml-auto text-xs text-on-surface-variant/35 font-label">{products.length}+ items</span>
-        )}
-      </div>
+    <section ref={sectionRef} id="products" className="py-6 px-4 md:px-8 max-w-screen-2xl mx-auto">
 
       {/* Error */}
       {error && (
@@ -419,13 +414,13 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
 
       {/* Loading skeletons — shimmer */}
       {loading && products.length === 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i}>
-              <div className="aspect-[3/4] skeleton-shimmer mb-3" />
-              <div className="h-3 skeleton-shimmer mb-2 w-1/2" />
-              <div className="h-4 skeleton-shimmer mb-2 w-3/4" />
-              <div className="h-3 skeleton-shimmer w-1/3" />
+              <div className="aspect-[3/4] skeleton-shimmer mb-4 rounded-2xl" />
+              <div className="h-3 skeleton-shimmer mb-2 w-1/2 rounded-full" />
+              <div className="h-4 skeleton-shimmer mb-2 w-3/4 rounded-full" />
+              <div className="h-3 skeleton-shimmer w-1/3 rounded-full" />
             </div>
           ))}
         </div>
@@ -433,18 +428,18 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
 
       {/* Empty state */}
       {!loading && products.length === 0 && !error && (
-        <div className="py-24 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-4">
-            <ShoppingBag className="w-8 h-8 text-on-surface-variant/20" />
+        <div className="py-32 text-center">
+          <div className="w-20 h-20 rounded-3xl bg-surface-container flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <ShoppingBag className="w-10 h-10 text-on-surface-variant/30" />
           </div>
-          <p className="text-on-surface-variant/50 font-body text-base">No products in this category yet.</p>
+          <p className="text-on-surface-variant/60 font-body text-lg">No products in this category yet.</p>
         </div>
       )}
 
       {/* Product grid */}
-      {products.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
-          {products.map((product, i) => (
+      {displayed.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
+          {displayed.map((product, i) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 30 }}

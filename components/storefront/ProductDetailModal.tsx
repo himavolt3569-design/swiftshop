@@ -98,11 +98,12 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
         r.forEach((x) => { dist[x.rating] = (dist[x.rating] ?? 0) + 1 })
         setRatingDist(dist)
       }
-      let { data: rel } = await supabase.from('products').select('*, category:categories(name), images, sizes').eq('category_id', product.category_id).neq('id', product.id).eq('is_active', true).limit(10)
-      if (!rel?.length) {
-        const { data: fb } = await supabase.from('products').select('*, category:categories(name), images, sizes').neq('id', product.id).eq('is_active', true).limit(10)
-        rel = fb
-      }
+      const { data: rel } = await supabase.from('products')
+        .select('*, category:categories(name), images, sizes')
+        .neq('id', product.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(100)
       setRelated((rel as Product[]) ?? [])
     }
     run()
@@ -587,21 +588,21 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
                     </div>
                   </div>
 
-                  {/* You may also like */}
+                  {/* More Products */}
                   {related.length > 0 && (
-                    <div className="pt-2">
-                      <p className="text-[11px] font-bold text-on-surface font-label uppercase tracking-widest mb-3">You May Also Like</p>
-                      <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+                    <div className="pt-6 mt-4 border-t border-outline-variant/15">
+                      <p className="text-[11px] font-bold text-on-surface font-label uppercase tracking-widest mb-4">More Products</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4 pb-2">
                         {related.map((r) => (
-                          <button key={r.id} onClick={() => onSelectProduct?.(r)} className="shrink-0 w-28 text-left group">
-                            <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-surface-container border border-outline-variant/20 mb-2 group-hover:shadow-lg transition-all duration-300 group-hover:-translate-y-1">
+                          <button key={r.id} onClick={() => onSelectProduct?.(r)} className="w-full text-left group">
+                            <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-surface-container border border-outline-variant/20 mb-2 group-hover:shadow-lg transition-all duration-300 group-hover:-translate-y-1">
                               {r.images?.[0]?.url ? (
-                                <Image src={r.images[0].url} alt={r.name} width={112} height={150} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <Image src={r.images[0].url} alt={r.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-2xl font-headline text-on-surface-variant/20">{r.name.charAt(0)}</div>
                               )}
                             </div>
-                            <p className="text-xs font-medium text-on-surface line-clamp-2 font-body leading-snug">{r.name}</p>
+                            <p className="text-xs font-semibold text-on-surface line-clamp-2 font-body leading-snug">{r.name}</p>
                             <p className="text-xs font-bold text-primary mt-0.5 font-label">NPR {(r.sale_price ?? r.price).toLocaleString()}</p>
                           </button>
                         ))}
