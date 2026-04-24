@@ -23,11 +23,11 @@ const notoSerif = Noto_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Goreto.store — Curated Essentials from Nepal",
+  title: "Goreto.store - Curated Essentials from Nepal",
   description:
     "Discover curated essentials from the finest artisans across Nepal. Fast delivery, real tracking, premium quality.",
   openGraph: {
-    title: "Goreto.store — Curated Essentials from Nepal",
+    title: "Goreto.store - Curated Essentials from Nepal",
     description:
       "Discover curated essentials from the finest artisans across Nepal. Fast delivery, real tracking, premium quality.",
     siteName: "Goreto.store",

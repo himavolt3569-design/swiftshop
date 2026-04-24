@@ -203,7 +203,7 @@
     cursor: not-allowed;
   }
 
-  /* Focus ring — accent-aware */
+  /* Focus ring - accent-aware */
   button:focus-visible, a:focus-visible {
     @apply outline outline-2 outline-offset-2 outline-primary/60;
   }

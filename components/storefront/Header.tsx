@@ -34,7 +34,21 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
   useEffect(() => { setHydrated(true) }, [])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    let ticking = false;
+    let lastScrolled = window.scrollY > 8;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const isScrolled = window.scrollY > 8;
+          if (isScrolled !== lastScrolled) {
+            setScrolled(isScrolled);
+            lastScrolled = isScrolled;
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])

@@ -114,9 +114,9 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
       />
 
       <main className="pt-[124px] md:pt-[92px]">
-        <Hero onCategoryChange={setActiveCategoryId} />
-
         <LatestArrivalsSection />
+
+        <Hero activeCategoryId={activeCategoryId} onCategoryChange={setActiveCategoryId} />
 
         <ProductFilters filters={filters} onChange={setFilters} />
 

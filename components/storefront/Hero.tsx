@@ -41,10 +41,11 @@ function getIcon(slug: string, name: string): React.ElementType {
 }
 
 interface HeroProps {
+  activeCategoryId?: string | null;
   onCategoryChange?: (categoryId: string | null) => void;
 }
 
-export function Hero({ onCategoryChange }: HeroProps) {
+export function Hero({ activeCategoryId, onCategoryChange }: HeroProps) {
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [selected, setSelected] = useState<Product | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -70,14 +71,17 @@ export function Hero({ onCategoryChange }: HeroProps) {
   }, [categories]);
 
   const handleCategoryClick = (catId: string) => {
-    onCategoryChange?.(catId);
+    const isCurrentlyActive = activeCategoryId === catId;
+    const newCatId = isCurrentlyActive ? null : catId;
+    
+    onCategoryChange?.(newCatId);
     const params = new URLSearchParams(window.location.search);
-    params.set("category", catId);
-    window.history.pushState(null, "", "?" + params.toString());
-    setTimeout(() => {
-      const el = document.getElementById("products");
-      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" });
-    }, 50);
+    if (newCatId) {
+      params.set("category", newCatId);
+    } else {
+      params.delete("category");
+    }
+    window.history.pushState(null, "", params.toString() ? "?" + params.toString() : "/");
   };
 
   return (
@@ -107,16 +111,31 @@ export function Hero({ onCategoryChange }: HeroProps) {
             {categories.length > 0
               ? categories.map((cat) => {
                   const Icon = getIcon(cat.slug, cat.name);
+                  const isActive = activeCategoryId === cat.id;
                   return (
                     <button
                       key={cat.id}
                       onClick={() => handleCategoryClick(cat.id)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white border border-black/5 hover:border-primary/30 hover:shadow-md transition-all duration-200 shrink-0 group snap-start cursor-pointer active:scale-[0.97]"
+                      className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border transition-all duration-200 shrink-0 group snap-start cursor-pointer active:scale-[0.97] ${
+                        isActive
+                          ? "bg-primary border-primary shadow-glow-sm"
+                          : "bg-white border-black/5 hover:border-primary/30 hover:shadow-md"
+                      }`}
                     >
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white text-primary transition-colors duration-200">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
+                        }`}
+                      >
                         <Icon className="w-4 h-4" />
                       </div>
-                      <span className="text-sm font-display font-semibold text-on-surface whitespace-nowrap">
+                      <span
+                        className={`text-sm font-display font-semibold whitespace-nowrap ${
+                          isActive ? "text-white" : "text-on-surface"
+                        }`}
+                      >
                         {cat.name}
                       </span>
                     </button>

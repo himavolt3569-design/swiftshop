@@ -439,15 +439,10 @@ export function ProductGrid({ activeCategoryId, highlightedProductId, initialPro
       {/* Product grid */}
       {displayed.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
-          {displayed.map((product, i) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: Math.min(i * 0.05, 0.4), ease: [0.22, 1, 0.36, 1] }}
-            >
+          {displayed.map((product) => (
+            <div key={product.id}>
               <ProductCard product={product} onClick={selectProduct} />
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
