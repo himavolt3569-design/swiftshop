@@ -117,8 +117,18 @@ export function ProductDetailModal({ product, onClose, onBuyNow, onSelectProduct
 
   useEffect(() => {
     document.addEventListener('keydown', handleEsc)
-    document.body.style.overflow = product ? 'hidden' : ''
-    return () => { document.removeEventListener('keydown', handleEsc); document.body.style.overflow = '' }
+    if (product) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEsc)
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
   }, [handleEsc, product])
 
   if (!product) return null

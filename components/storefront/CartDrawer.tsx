@@ -3,6 +3,7 @@
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect } from 'react'
 import { useCartStore } from '@/store/cartStore'
 
 interface CartDrawerProps {
@@ -13,6 +14,20 @@ interface CartDrawerProps {
 
 export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
   const { items, removeItem, updateQuantity, getSubtotal } = useCartStore()
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [open])
 
   return (
     <AnimatePresence>
