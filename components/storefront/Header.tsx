@@ -8,6 +8,7 @@ import { useWishlistStore } from '@/store/wishlistStore'
 import { useAuthStore } from '@/store/authStore'
 import { SearchBar } from '@/components/shared/SearchBar'
 import { AuthModal } from '@/components/storefront/AuthModal'
+import { AdsMarquee } from '@/components/storefront/AdsMarquee'
 import { supabase } from '@/lib/supabase'
 import { Product } from '@/lib/types'
 
@@ -23,7 +24,6 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
   const bouncing      = useCartStore((s) => s.bouncing)
   const { user, setSession, setLoading } = useAuthStore()
 
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [authOpen,         setAuthOpen]          = useState(false)
   const [userMenuOpen,     setUserMenuOpen]       = useState(false)
   const [hydrated,         setHydrated]           = useState(false)
@@ -67,7 +67,10 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
 
   return (
     <>
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ease-spring h-16 ${
+      <div className="fixed top-0 w-full z-[60]">
+        <AdsMarquee />
+      </div>
+      <nav className={`fixed top-[28px] w-full z-50 transition-all duration-500 ease-spring h-16 ${
         scrolled
           ? 'glass shadow-depth border-b border-outline-variant/10'
           : 'bg-transparent border-b border-transparent'
@@ -84,8 +87,8 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
             </span>
           </a>
 
-          {/* Desktop search — glassmorphic */}
-          <div className="hidden md:flex flex-1 max-w-sm mx-4">
+          {/* Search — glassmorphic, visible everywhere */}
+          <div className="flex-1 max-w-lg mx-2 md:mx-4">
             <SearchBar onSelect={onProductSelect} />
           </div>
 
@@ -101,10 +104,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
 
           {/* Right actions */}
           <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
-            {/* Mobile search */}
-            <IconButton onClick={() => setMobileSearchOpen(true)} label="Search" className="md:hidden">
-              <Search className="w-[18px] h-[18px]" />
-            </IconButton>
+
 
             {/* Wishlist */}
             <IconButton onClick={() => onWishlistOpen?.()} label={`Wishlist (${hydrated ? wishlistCount : 0})`}>
@@ -192,44 +192,6 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
           </div>
         </div>
       </nav>
-
-      {/* Mobile search — full overlay */}
-      <AnimatePresence>
-        {mobileSearchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60] bg-on-background/50 backdrop-blur-md md:hidden"
-            onClick={() => setMobileSearchOpen(false)}
-          >
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="absolute bottom-0 left-0 right-0 glass rounded-t-3xl p-6 shadow-depth-lg"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="w-10 h-1 bg-outline-variant/30 rounded-full mx-auto mb-5" />
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-on-surface font-display">Search Products</span>
-                <button onClick={() => setMobileSearchOpen(false)} aria-label="Close search" className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center">
-                  <X className="w-4 h-4 text-on-surface-variant" />
-                </button>
-              </div>
-              <SearchBar
-                mobile
-                onSelect={(p) => {
-                  onProductSelect?.(p)
-                  setMobileSearchOpen(false)
-                }}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>

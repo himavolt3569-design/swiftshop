@@ -113,7 +113,7 @@ export function StorefrontPage({ initialProduct = null }: { initialProduct?: Pro
         onWishlistOpen={() => setWishlistOpen(true)}
       />
 
-      <main className="pt-16">
+      <main className="pt-[92px]">
         <Hero onCategoryChange={setActiveCategoryId} />
 
         <LatestArrivalsSection />

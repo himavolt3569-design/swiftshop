@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!
     )
     const { product_id, count = 8 } = await req.json()
     if (!product_id) return NextResponse.json({ error: 'product_id required' }, { status: 400 })

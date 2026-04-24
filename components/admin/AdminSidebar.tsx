@@ -42,23 +42,23 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
   }
 
   const sidebarContent = (
-    <div className="h-full flex flex-col bg-[#1E1C1A]">
+    <div className="h-full flex flex-col bg-admin">
 
       {/* Logo */}
-      <div className="px-5 pt-6 pb-5 flex items-center justify-between border-b border-white/[0.06]">
+      <div className="px-5 pt-6 pb-5 flex items-center justify-between border-b border-outline-variant/30">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/30">
             <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-[13px] font-bold text-white tracking-tight font-label">Goreto.store</h1>
-            <p className="text-[10px] text-white/30 font-label tracking-[0.15em] uppercase">Admin</p>
+            <h1 className="text-[13px] font-bold text-on-surface tracking-tight font-label">Goreto.store</h1>
+            <p className="text-[10px] text-on-surface-variant/70 font-label tracking-[0.15em] uppercase">Admin</p>
           </div>
         </div>
         {onMobileClose && (
           <button
             onClick={onMobileClose}
-            className="lg:hidden w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+            className="lg:hidden w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-variant/70 hover:text-on-surface hover:bg-surface-container transition-all"
           >
             <X className="w-4 h-4" />
           </button>
@@ -71,7 +71,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
           const items = NAV.filter((n) => n.group === key)
           return (
             <div key={key}>
-              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-white/20 font-label px-3 mb-2">
+              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-on-surface-variant/50 font-label px-3 mb-2">
                 {label}
               </p>
               <div className="space-y-0.5">
@@ -84,8 +84,8 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
                       onClick={onMobileClose}
                       className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ease-out group ${
                         active
-                          ? 'bg-white/[0.10] text-white'
-                          : 'text-white/40 hover:text-white/75 hover:bg-white/[0.05]'
+                          ? 'bg-surface-container-high text-primary'
+                          : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                       }`}
                     >
                       {/* Active left bar */}
@@ -94,7 +94,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
                       )}
                       <Icon
                         className={`w-4 h-4 shrink-0 transition-colors duration-200 ${
-                          active ? 'text-white' : 'text-white/25 group-hover:text-white/60'
+                          active ? 'text-primary' : 'text-on-surface-variant/60 group-hover:text-primary/80'
                         }`}
                         strokeWidth={active ? 2.2 : 1.7}
                       />
@@ -114,12 +114,12 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
       </nav>
 
       {/* Sign out */}
-      <div className="px-3 py-4 border-t border-white/[0.06]">
+      <div className="px-3 py-4 border-t border-outline-variant/30">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-white/30 hover:text-red-400 hover:bg-red-500/[0.08] transition-all duration-200 font-label active:scale-[0.98] group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-on-surface-variant/70 hover:text-red-600 hover:bg-red-500/[0.08] transition-all duration-200 font-label active:scale-[0.98] group"
         >
-          <LogOut className="w-4 h-4 shrink-0 group-hover:text-red-400 transition-colors duration-200" strokeWidth={1.7} />
+          <LogOut className="w-4 h-4 shrink-0 group-hover:text-red-500 transition-colors duration-200" strokeWidth={1.7} />
           Sign Out
         </button>
       </div>
@@ -129,7 +129,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
   return (
     <>
       {/* Desktop */}
-      <aside className="hidden lg:flex h-screen w-60 fixed left-0 top-0 flex-col z-50 border-r border-white/[0.05]">
+      <aside className="hidden lg:flex h-screen w-60 fixed left-0 top-0 flex-col z-50 border-r border-outline-variant/20 bg-admin">
         {sidebarContent}
       </aside>
 
@@ -138,7 +138,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
         {mobileOpen && (
           <>
             <motion.div
-              className="lg:hidden fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
+              className="lg:hidden fixed inset-0 z-[80] bg-black/20 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -146,7 +146,7 @@ export function AdminSidebar({ mobileOpen = false, onMobileClose }: AdminSidebar
               onClick={onMobileClose}
             />
             <motion.aside
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 max-w-[85vw] z-[90] shadow-2xl"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 max-w-[85vw] z-[90] shadow-2xl bg-admin"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}

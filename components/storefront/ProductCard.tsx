@@ -1,13 +1,12 @@
 'use client'
 
 import Image from 'next/image'
-import { Heart, ShoppingCart } from 'lucide-react'
+import { Heart, Plus } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Product } from '@/lib/types'
 import { useCartStore }     from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
 import { useSessionStore }  from '@/store/sessionStore'
-import { useRef, useState } from 'react'
 
 interface ProductCardProps {
   product: Product
@@ -26,19 +25,6 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   const discount      = product.sale_price
     ? Math.round(((product.price - product.sale_price) / product.price) * 100)
     : null
-
-  const cardRef = useRef<HTMLDivElement>(null)
-  const [tilt, setTilt] = useState({ x: 0, y: 0 })
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current) return
-    const rect = cardRef.current.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / rect.width - 0.5
-    const y = (e.clientY - rect.top) / rect.height - 0.5
-    setTilt({ x: y * -8, y: x * 8 })
-  }
-
-  const handleMouseLeave = () => setTilt({ x: 0, y: 0 })
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -69,108 +55,110 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     }
   }
 
+  // Mock rating for visual parity with the reference image
+  const mockRating = 4.7;
+  const mockReviews = 35;
+
   return (
     <div
-      ref={cardRef}
-      className="group cursor-pointer"
+      className="group cursor-pointer bg-white border border-gray-100 overflow-hidden flex flex-col hover:shadow-lg transition-shadow duration-200 relative"
       onClick={() => onClick(product)}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        perspective: '800px',
-      }}
     >
-      {/* Image container — 3D tilt */}
-      <motion.div
-        className="aspect-[3/4] bg-surface-container-lowest border border-outline-variant/15 rounded-2xl overflow-hidden relative shadow-float"
-        animate={{
-          rotateX: tilt.x,
-          rotateY: tilt.y,
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        whileHover={{ y: -6, boxShadow: '0 20px 50px rgba(26, 23, 20, 0.12)' }}
-      >
-        {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5">
-          {product.stock <= 0 ? (
-            <span className="bg-on-surface/80 backdrop-blur-sm text-white text-[10px] px-2.5 py-0.5 rounded-full font-label font-semibold">
-              Sold Out
-            </span>
-          ) : discount ? (
-            <span className="bg-accent-warm/90 backdrop-blur-sm text-on-accent-warm text-[10px] font-bold px-2.5 py-0.5 rounded-full font-label shadow-sm">
-              -{discount}%
-            </span>
-          ) : null}
+      {/* Image container */}
+      <div className="relative w-full aspect-[4/5] bg-white p-4 flex items-center justify-center">
+        {/* Top Badges */}
+        <div className="absolute top-0 left-0 z-10 flex flex-col">
+          {product.tags?.includes('best_seller') && (
+           <span className="bg-[#117C46] text-white text-[10px] px-2 py-0.5 font-semibold rounded-br mb-1">
+             Best Seller
+           </span>
+          )}
         </div>
 
         {/* Wishlist */}
-        <motion.button
+        <button
           onClick={toggleWish}
           aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
-          className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-white/70 backdrop-blur-lg rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all duration-300"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          className="absolute top-2 right-2 z-10 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-[0_1px_4px_rgba(0,0,0,0.15)] hover:bg-gray-50 transition-all duration-200"
         >
-          <Heart className={`w-4 h-4 transition-all duration-300 ${isWished ? 'fill-red-500 text-red-500 scale-110' : 'text-on-surface-variant'}`} />
-        </motion.button>
+          <Heart className={`w-[14px] h-[14px] transition-colors ${isWished ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-gray-600'}`} strokeWidth={1.5} />
+        </button>
 
         {/* Product image */}
         {firstImage ? (
-          <Image
-            src={firstImage}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-700 ease-out-expo group-hover:scale-108"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
+          <div className="relative w-full h-full mix-blend-multiply">
+            <Image
+              src={firstImage}
+              alt={product.name}
+              fill
+              className="object-contain p-2"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-surface-container text-5xl font-display text-on-surface-variant/15">
+          <div className="w-full h-full flex items-center justify-center bg-gray-50 text-3xl font-display text-gray-300">
             {product.name.charAt(0)}
           </div>
         )}
 
-        {/* Quick add — slides up on hover (glassmorphic) */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-spring">
-          <button
-            onClick={handleAddToCart}
-            disabled={defaultStock <= 0}
-            className="w-full py-3.5 bg-primary/90 backdrop-blur-md text-white text-xs font-label font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ShoppingCart className="w-3.5 h-3.5" />
-            {defaultStock <= 0 ? 'Out of Stock' : 'Quick Add'}
-          </button>
-        </div>
+        {/* Add to Cart button (Circular Plus) */}
+        <button
+          onClick={handleAddToCart}
+          disabled={defaultStock <= 0}
+          className="absolute -bottom-3 right-3 z-20 w-8 h-8 bg-white border border-gray-100 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          <Plus className="w-5 h-5 text-gray-500" strokeWidth={1.5} />
+        </button>
+      </div>
 
-        {/* Hover shine sweep */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-br from-white/0 via-white/[0.05] to-white/0 pointer-events-none" />
-      </motion.div>
-
-      {/* Info */}
-      <div className="mt-3 px-0.5">
-        {product.category?.name && (
-          <p className="text-[10px] uppercase tracking-wider text-on-surface-variant/40 mb-0.5 font-label truncate">
-            {product.category.name}
-          </p>
-        )}
-        <h3 className="text-[13px] md:text-sm font-semibold text-on-surface leading-snug line-clamp-1 font-body mb-1.5">
+      {/* Info Section */}
+      <div className="px-3 pb-3 pt-4 flex flex-col flex-1 border-t border-gray-50 relative">
+        {/* Title */}
+        <h3 className="text-[13px] text-gray-800 leading-[1.3] line-clamp-2 font-body mb-1">
           {product.name}
         </h3>
-        <div className="flex items-center justify-between gap-1">
-          <div className="flex items-baseline gap-1.5 min-w-0">
-            <span className="text-sm md:text-[15px] font-bold text-primary whitespace-nowrap">
-              NPR {displayPrice.toLocaleString()}
-            </span>
-            {product.sale_price && (
-              <span className="text-[11px] text-on-surface-variant/35 line-through hidden sm:inline">
+
+        {/* Rating */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex items-center text-[#117C46] bg-green-50 px-1 py-[1px] rounded-sm">
+            <span className="text-[10px]">★</span>
+            <span className="text-[11px] font-bold ml-0.5">{mockRating}</span>
+          </div>
+          <span className="text-[11px] text-gray-400">({mockReviews})</span>
+        </div>
+
+        {/* Price Section */}
+        <div className="flex items-baseline gap-1.5 flex-wrap mb-1 mt-auto">
+          <span className="text-[15px] font-bold text-[#1A1A1A] whitespace-nowrap leading-none">
+            <span className="text-[12px] font-medium mr-0.5">NPR</span>
+            {displayPrice.toLocaleString()}
+          </span>
+          {product.sale_price && (
+            <>
+              <span className="text-[12px] text-gray-400 line-through leading-none decoration-gray-300">
                 {product.price.toLocaleString()}
               </span>
-            )}
+              <span className="text-[12px] text-[#117C46] font-bold leading-none ml-1">
+                {discount}% Off
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Subtitle / Unit info */}
+        <p className="text-[11px] text-gray-400 mb-2 truncate">
+          {product.category?.name ?? 'Standard Size'}
+        </p>
+
+        {/* Badges / Delivery Info */}
+        <div className="flex items-center justify-between mt-auto pt-1">
+          <div className="flex items-center gap-1 text-[10px] text-gray-500">
+            <span className="text-blue-500 font-bold">🚚</span> Free Delivery
           </div>
-          {defaultStock > 0 && defaultStock < 5 && (
-            <span className="flex items-center gap-1 text-[10px] text-accent-warm font-label whitespace-nowrap shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-warm animate-breathe" />
-              {defaultStock} left
-            </span>
+          {product.tags?.includes('express') && (
+            <div className="bg-[#FFED00] text-black text-[10px] font-bold italic px-2 py-0.5 rounded-[2px] flex items-center leading-none tracking-tight">
+              express
+            </div>
           )}
         </div>
       </div>

@@ -39,7 +39,7 @@ const COLS = [
 const DEFAULT_SIZES = ['S', 'M', 'L', 'XL', 'XXL']
 const EMPTY_FORM = {
   name: '', description: '', price: '', sale_price: '', stock: '',
-  category_id: '', sizeStocks: {} as Record<string, string>, hasSizes: false, is_active: true,
+  category_id: '', sizeStocks: {} as Record<string, string>, hasSizes: false, is_active: true, tags: [] as string[],
 }
 
 /* ─── Tiny helpers ─── */
@@ -134,7 +134,7 @@ export default function ProductsPage() {
     const hasSizes = (prod.sizes ?? []).length > 0
     const sizeStocks: Record<string, string> = {}
     if (hasSizes) { (prod.sizes ?? []).forEach((s) => { sizeStocks[s.size] = String(s.stock) }) }
-    setForm({ name: prod.name, description: prod.description, price: String(prod.price), sale_price: String(prod.sale_price ?? ''), stock: String(prod.stock), category_id: prod.category_id, sizeStocks, hasSizes, is_active: prod.is_active })
+    setForm({ name: prod.name, description: prod.description, price: String(prod.price), sale_price: String(prod.sale_price ?? ''), stock: String(prod.stock), category_id: prod.category_id, sizeStocks, hasSizes, is_active: prod.is_active, tags: prod.tags ?? [] })
     setImageFiles([]); setImagePreviews([])
     setKeptImages((prod.images ?? []).map((img) => ({ url: img.url })))
     setDrawerOpen(true)
@@ -190,7 +190,7 @@ export default function ProductsPage() {
       name: form.name, description: form.description, price: parseFloat(form.price),
       sale_price: form.sale_price ? parseFloat(form.sale_price) : null,
       stock: totalStock, category_id: form.category_id || null,
-      sizes, is_active: form.is_active,
+      sizes, is_active: form.is_active, tags: form.tags,
       images: combinedImages,
     }
     if (editing) {
@@ -237,7 +237,7 @@ export default function ProductsPage() {
       />
 
       {/* ═══ Drawer ═══ */}
-      <AdminDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={editing ? 'Edit Product' : 'Add Product'} width="w-[600px]">
+      <AdminDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={editing ? 'Edit Product' : 'Add Product'} width="max-w-[500px]">
         <div className="space-y-4 pb-2">
 
 
@@ -433,7 +433,29 @@ export default function ProductsPage() {
             <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => { handleFileChange(e.target.files); if(fileRef.current) fileRef.current.value = '' }} />
           </SectionCard>
 
-          {/* ── 5. Visibility ── */}
+          {/* ── 5. Tags ── */}
+          <SectionCard icon={Tag} title="Tags & Labels">
+            <div className="flex gap-3">
+              {['best_seller', 'express'].map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setForm((f) => ({
+                    ...f,
+                    tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag]
+                  }))}
+                  className={`px-4 py-2 rounded-xl text-[12px] font-bold tracking-wide uppercase transition-all ${
+                    form.tags.includes(tag) ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+                  }`}
+                >
+                  {tag.replace('_', ' ')}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-on-surface-variant/50 font-label mt-3">These tags will display as visual badges on the product card.</p>
+          </SectionCard>
+
+          {/* ── 6. Visibility ── */}
           <div
             className={`flex items-center justify-between px-5 py-4 rounded-2xl border cursor-pointer transition-all ${form.is_active ? 'border-success/30 bg-success/5' : 'border-outline-variant/40 bg-surface-container-lowest'}`}
             onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}

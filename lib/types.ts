@@ -33,6 +33,7 @@ export interface Product {
   sizes: ProductSize[]
   stock: number
   is_active: boolean
+  tags?: string[]
   created_at: string
 }
 
