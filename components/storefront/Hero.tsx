@@ -107,7 +107,7 @@ export function Hero({ activeCategoryId, onCategoryChange }: HeroProps) {
               See All
             </button>
           </div>
-          <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-2 px-4 md:px-8 snap-x snap-mandatory scroll-smooth touch-pan-x">
+          <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-2 px-4 md:px-8 snap-x snap-mandatory scroll-smooth">
             {categories.length > 0
               ? categories.map((cat) => {
                   const Icon = getIcon(cat.slug, cat.name);

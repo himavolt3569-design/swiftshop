@@ -223,8 +223,12 @@
   }
 
   /* Restore pan gestures inside scroll containers */
-  .overflow-y-auto, .overflow-y-scroll, .overflow-x-auto, .overflow-x-scroll {
+  .overflow-y-auto, .overflow-y-scroll {
     touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+  .overflow-x-auto, .overflow-x-scroll {
+    touch-action: pan-x pan-y;
     -webkit-overflow-scrolling: touch;
   }
 
