@@ -99,8 +99,8 @@ const config: Config = {
         headline: ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
         body:     ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
         label:    ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
-        serif:    ['Playfair Display', 'serif'],
-        logo:     ['Noto Serif', 'serif'],
+        serif:    ['var(--font-playfair)', 'Playfair Display', 'serif'],
+        logo:     ['var(--font-noto)', 'Noto Serif', 'serif'],
       },
 
       borderRadius: {

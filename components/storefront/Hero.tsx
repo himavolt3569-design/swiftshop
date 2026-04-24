@@ -81,17 +81,12 @@ export function Hero({ onCategoryChange }: HeroProps) {
   };
 
   return (
-    <section ref={sectionRef} className="relative pt-20 pb-2 md:pt-24 md:pb-4 bg-surface overflow-hidden">
+    <section ref={sectionRef} className="relative pt-6 pb-2 md:pt-8 md:pb-4 bg-surface overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
-      <div className="relative max-w-screen-2xl mx-auto px-4 md:px-8">
-        {/* Search Bar */}
-        <div className="hero-stagger mb-5 w-full relative z-50 max-w-3xl mx-auto">
-          <SearchBar variant="hero" onSelect={selectProduct} />
-        </div>
-
+      <div className="relative max-w-screen-2xl mx-auto">
         {/* Explore Categories — scrollable on mobile */}
         <div className="hero-stagger">
-          <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center justify-between mb-4 px-4 md:px-8">
             <h3 className="text-sm font-display font-bold text-on-surface flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
               Explore Categories
@@ -108,7 +103,7 @@ export function Hero({ onCategoryChange }: HeroProps) {
               See All
             </button>
           </div>
-          <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory">
+          <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-2 px-4 md:px-8 snap-x snap-mandatory scroll-smooth touch-pan-x">
             {categories.length > 0
               ? categories.map((cat) => {
                   const Icon = getIcon(cat.slug, cat.name);

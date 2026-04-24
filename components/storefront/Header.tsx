@@ -70,40 +70,40 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
       <div className="fixed top-0 w-full z-[60]">
         <AdsMarquee />
       </div>
-      <nav className={`fixed top-[28px] w-full z-50 transition-all duration-500 ease-spring h-16 ${
+      <nav className={`fixed top-[28px] w-full z-50 transition-all duration-500 ease-spring ${
         scrolled
           ? 'glass shadow-depth border-b border-outline-variant/10'
           : 'bg-transparent border-b border-transparent'
       }`}>
-        <div className="flex items-center justify-between px-4 md:px-10 h-full max-w-screen-2xl mx-auto gap-2 md:gap-4">
+        <div className="flex flex-wrap items-center justify-between px-4 md:px-10 py-3 md:h-16 md:py-0 max-w-screen-2xl mx-auto gap-y-3 md:gap-x-4">
 
           {/* Logo */}
-          <a
-            href="/"
-            className="font-logo font-black italic text-xl text-on-surface tracking-tighter shrink-0 hover:text-primary transition-colors duration-300 group"
-          >
-            <span className="inline-block group-hover:scale-105 transition-transform duration-300">
-              Goreto.store
-            </span>
-          </a>
-
-          {/* Search — glassmorphic, visible everywhere */}
-          <div className="flex-1 max-w-lg mx-2 md:mx-4">
-            <SearchBar onSelect={onProductSelect} />
-          </div>
-
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-1 shrink-0">
+          <div className="order-1 flex-shrink-0">
             <a
-              href="/track"
-              className="text-[13px] text-on-surface-variant hover:text-primary font-display font-medium px-3 py-1.5 rounded-xl hover:bg-surface-container/50 transition-all duration-200"
+              href="/"
+              className="font-logo font-bold italic text-2xl text-on-surface tracking-tighter hover:text-primary transition-colors duration-300 group inline-block"
             >
-              Track Order
+              <span className="inline-block group-hover:scale-105 transition-transform duration-300">
+                Goreto.store
+              </span>
             </a>
           </div>
 
+          {/* Search — full width on mobile, center on desktop */}
+          <div className="order-3 md:order-2 w-full md:w-auto md:flex-1 md:max-w-lg">
+            <SearchBar onSelect={onProductSelect} />
+          </div>
+
           {/* Right actions */}
-          <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
+          <div className="order-2 md:order-3 flex items-center gap-0.5 sm:gap-1.5 shrink-0">
+            <div className="hidden md:flex items-center gap-1 shrink-0 mr-1">
+              <a
+                href="/track"
+                className="text-[13px] text-on-surface-variant hover:text-primary font-display font-medium px-3 py-1.5 rounded-xl hover:bg-surface-container/50 transition-all duration-200"
+              >
+                Track Order
+              </a>
+            </div>
 
 
             {/* Wishlist */}

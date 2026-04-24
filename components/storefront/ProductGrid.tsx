@@ -232,7 +232,7 @@ export function LatestArrivalsSection() {
             </div>
             <span className="text-[10px] uppercase tracking-[0.3em] text-primary font-display font-bold">Just Dropped</span>
           </div>
-          <h3 className="font-display text-2xl md:text-3xl font-bold text-on-surface leading-tight">
+          <h3 className="font-serif text-3xl md:text-4xl font-bold text-on-surface leading-tight">
             New Arrivals
           </h3>
         </div>
