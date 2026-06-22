@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Heart, ShoppingCart, Search, X, LogOut, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
 import { useAuthStore } from '@/store/authStore'
@@ -19,6 +20,7 @@ interface HeaderProps {
 }
 
 export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderProps) {
+  const router        = useRouter()
   const cartCount     = useCartStore((s) => s.getCount())
   const wishlistCount = useWishlistStore((s) => s.getCount())
   const bouncing      = useCartStore((s) => s.bouncing)
@@ -171,7 +173,14 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
                           </p>
                         </div>
                         <div className="p-1.5">
-                          <DropdownItem icon={<User className="w-4 h-4" />} label="My Account" />
+                          <DropdownItem 
+                            icon={<User className="w-4 h-4" />} 
+                            label="My Account" 
+                            onClick={() => {
+                              setUserMenuOpen(false)
+                              router.push('/admin')
+                            }} 
+                          />
                           <DropdownItem
                             icon={<LogOut className="w-4 h-4" />}
                             label="Sign Out"
