@@ -178,7 +178,7 @@ export function Header({ onProductSelect, onCartOpen, onWishlistOpen }: HeaderPr
                             label="My Account" 
                             onClick={() => {
                               setUserMenuOpen(false)
-                              router.push('/admin')
+                              router.push('/account')
                             }} 
                           />
                           <DropdownItem
